@@ -1,57 +1,104 @@
-# 🧭 AutoTrack — MVP
+# AutoTrack MVP
 
-AutoTrack is a lightweight, mobile-friendly car maintenance tracker designed to help everyday drivers **log services**, **track upcoming maintenance**, and **get reminders** without needing advanced automotive knowledge.
-
-This repository contains the source code and product requirements for the **AutoTrack MVP**.
+AutoTrack helps everyday drivers stay ahead of maintenance with a single, focused workflow: add your vehicle, log services, and keep an eye on what's due next. This repository contains the Next.js + Supabase implementation of the MVP described in `project.md`.
 
 ---
 
-## 📌 Product Overview
+## Features
+- **Dashboard:** Shows the next service due, highlights reminders, and surfaces the most recent maintenance log.
+- **Vehicle Profile:** Capture year, make, model, VIN (optional), and mileage for one vehicle.
+- **Maintenance Timeline:** Combined view of upcoming (due-soon / overdue) services and completed work.
+- **Service Logging:** Log routine maintenance with mileage, cost, and notes; schedules update automatically.
+- **Smart Reminders:** Default intervals for oil change, tire rotation, and brake inspection drive the dashboard alerts.
 
-**Problem:**  
-Car owners often lose track of maintenance schedules, rely on paper receipts, or miss routine services, leading to higher costs and reduced vehicle lifespan.
-
-**Solution:**  
-AutoTrack provides:
-- A clean dashboard showing what’s due next,
-- A maintenance timeline with past and upcoming services,
-- Friendly reminders based on mileage or time,
-- A simple service log that works on mobile.
-
-✅ *Focused MVP: one vehicle, no mechanic integrations, no bloat.*
+The experience is designed for mobile screens, uses a single-device anonymous session (no sign-in), and keeps the navigation focused on three screens: Dashboard, Timeline, and Add Service.
 
 ---
 
-## ✨ Core Features
+## Getting Started
 
-- **Vehicle Profile** – Add a single vehicle with make, model, year, and mileage.  
-- **Maintenance Timeline** – See upcoming and past services in a simple vertical timeline.  
-- **Log a Service** – Add oil changes, tire rotations, brake inspections, or custom services in seconds.  
-- **Reminders** – Notifications before services are due.  
-- **Dashboard** – Quick glance at what’s next.
+1. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
----
+2. **Provision Supabase**
+   - Create a new Supabase project.
+   - Run the SQL in `supabase/schema.sql` inside the Supabase SQL editor.
+   - (Optional) Enable Row Level Security if you plan to move away from the service role in server actions.
 
-## 🧭 Non-Functional Requirements
+3. **Environment variables**
+   Create `.env.local` at the project root with:
+   ```bash
+   SUPABASE_URL=your-project-url
+   SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+   ```
+   The app currently uses the service role inside server actions and never exposes it to the client. The public anon key is included for future client-side extensions.
 
-- Fully **mobile-friendly** design  
-- Simple and fast user flow  
-- Works offline for service logging  
-- No sign-in required  
-- Three core screens only: Dashboard, Timeline, Add Service
-
----
-
-## 🚀 Future Enhancements (Post-MVP)
-
-- Multi-vehicle support  
-- OBD-II integration for mileage sync  
-- Mechanic shop booking  
-- Cost analytics and reporting  
-- Warranty and insurance storage  
-- Gamified maintenance streaks
+4. **Run the dev server**
+   ```bash
+   npm run dev
+   ```
+   The app will be available at `http://localhost:3000`.
 
 ---
 
-## 📁 Repository Structure (Proposed)
+## Application Flow
 
+1. **Onboarding** (`/onboarding`)
+   - Generates a per-device cookie to identify the session.
+   - Captures vehicle details and seeds default service schedules:
+     | Service          | Interval          | Reminder lead |
+     | ---------------- | ----------------- | ------------- |
+     | Oil Change       | 5,000 mi / 6 mo   | 500 mi / 14 d |
+     | Tire Rotation    | 7,500 mi / 12 mo  | 500 mi / 21 d |
+     | Brake Inspection | — / 12 mo         | — / 30 d      |
+
+2. **Dashboard** (`/`)
+   - Highlights due-soon or overdue services.
+   - Surfaces the closest upcoming schedule and the last completed log.
+
+3. **Timeline** (`/timeline`)
+   - Blends the upcoming reminders and completed logs in a vertical timeline.
+
+4. **Add Service** (`/service/new`)
+   - Logs a maintenance event, updates the relevant schedule, adjusts the vehicle mileage, and refreshes dashboard data.
+
+---
+
+## Key Directories
+
+| Path | Description |
+| ---- | ----------- |
+| `src/app` | App Router routes, layouts, and server actions. |
+| `src/lib` | Shared helpers for Supabase access, device identity, constants, and timeline calculations. |
+| `supabase/schema.sql` | SQL migrations for the MVP database schema. |
+
+---
+
+## Supabase Notes
+
+- The app uses server actions with the Supabase service role to simplify early MVP development. For production, consider moving to authenticated supabase-js clients with Row Level Security.
+- `devices` table binds anonymous users to a single vehicle via an HTTP-only cookie (`autotrack_device_id`).
+- `service_schedules` drives reminders and timelines; `service_logs` keeps the maintenance history.
+
+---
+
+## Scripts
+
+| Command | Description |
+| ------- | ----------- |
+| `npm run dev` | Start the Next.js dev server. |
+| `npm run build` | Create a production build. |
+| `npm run start` | Start the production server. |
+| `npm run lint` | Run ESLint. |
+| `npm run typecheck` | Static type checking with TypeScript. |
+
+---
+
+## Next Steps
+
+- Connect actual reminder delivery (email/push) using Supabase Functions or a cron scheduler.
+- Add offline caching or local storage fallbacks for when Supabase is unreachable.
+- Expand to multi-vehicle support by relaxing the unique constraint on `vehicles.device_id` and adapting the UI. 
