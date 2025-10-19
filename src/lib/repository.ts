@@ -21,6 +21,14 @@ type CreateServiceLogPayload = {
   notes?: string | null;
 };
 
+type CreateCustomServiceLogPayload = {
+  serviceName: string;
+  serviceDate: string;
+  mileage?: number | null;
+  cost?: number | null;
+  notes?: string | null;
+};
+
 export async function ensureDevice(deviceId: string) {
   const client = createAdminClient();
   const { error } = await client.from('devices').upsert({ id: deviceId }).single();
@@ -209,6 +217,44 @@ export async function createServiceLog(
   }
 
   await updateScheduleAfterService(schedule, payload);
+
+  if (
+    mileageValue !== null &&
+    (vehicle.current_mileage === null || mileageValue > vehicle.current_mileage)
+  ) {
+    await updateVehicleMileage(vehicle.id, mileageValue);
+  }
+}
+
+export async function createCustomServiceLog(
+  deviceId: string,
+  vehicle: Vehicle,
+  payload: CreateCustomServiceLogPayload
+) {
+  const client = createAdminClient();
+  const nowIso = new Date().toISOString();
+  const mileageValue = payload.mileage ?? null;
+  const costCents =
+    typeof payload.cost === 'number' && !Number.isNaN(payload.cost)
+      ? Math.round(payload.cost * 100)
+      : null;
+
+  const { error } = await client.from('service_logs').insert({
+    device_id: deviceId,
+    vehicle_id: vehicle.id,
+    schedule_id: null,
+    service_code: null,
+    service_name: payload.serviceName.trim(),
+    service_date: payload.serviceDate,
+    mileage: mileageValue,
+    cost_cents: costCents,
+    notes: payload.notes?.trim() || null,
+    created_at: nowIso
+  });
+
+  if (error) {
+    throw error;
+  }
 
   if (
     mileageValue !== null &&

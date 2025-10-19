@@ -3,7 +3,8 @@ import { redirect } from 'next/navigation';
 import { requireDeviceId } from '../../../lib/device';
 import { getDashboardData } from '../../../lib/repository';
 import { submitServiceAction } from './actions';
-import { getUpcomingServices } from '../../../lib/dashboard-helpers';
+import { getUpcomingServices, nextReminderLabel, reminderPreviewDate } from '../../../lib/dashboard-helpers';
+import ServiceTypeField from '../../../components/service-type-field';
 
 export default async function NewServicePage() {
   const deviceId = requireDeviceId('/service/new');
@@ -27,19 +28,7 @@ export default async function NewServicePage() {
 
       <section className="card" style={{ display: 'grid', gap: '1.5rem' }}>
         <form action={submitServiceAction} className="form">
-          <div className="form-field">
-            <label htmlFor="schedule_id">Service</label>
-            <select id="schedule_id" name="schedule_id" required defaultValue="">
-              <option value="" disabled>
-                Select service type
-              </option>
-              {schedules.map((schedule) => (
-                <option key={schedule.id} value={schedule.id}>
-                  {schedule.service_name}
-                </option>
-              ))}
-            </select>
-          </div>
+          <ServiceTypeField schedules={schedules} />
 
           <div className="form-field">
             <label htmlFor="service_date">Service date</label>
@@ -97,28 +86,64 @@ export default async function NewServicePage() {
         </header>
 
         <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'grid', gap: '0.75rem' }}>
-          {upcoming.map((item) => (
-            <li
-              key={item.schedule.id}
-              style={{
-                display: 'grid',
-                gap: '0.25rem',
-                padding: '0.75rem',
-                borderRadius: 'var(--radius-md)',
-                background: 'var(--surface-muted)'
-              }}
-            >
-              <strong>{item.schedule.service_name}</strong>
-              <span style={{ color: 'var(--text-secondary)' }}>
-                {item.dueDateLabel ? `Next target: ${item.dueDateLabel}. ` : ''}
-                {item.milesUntilDue !== null
-                  ? `${item.milesUntilDue.toLocaleString()} miles remaining.`
-                  : ''}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </section>
+          {upcoming.map((item) => {
+            const reminderDate = reminderPreviewDate(item);
+            const reminderMessage = nextReminderLabel(item);
+
+            return (
+              <li
+                key={item.schedule.id}
+                style={{
+                  display: 'grid',
+                  gap: '0.35rem',
+                  padding: '0.75rem',
+                  borderRadius: 'var(--radius-md)',
+                  background: 'var(--surface-muted)'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <strong>{item.schedule.service_name}</strong>
+                  <span
+                    className={`pill ${
+                      item.status === 'overdue'
+                        ? 'pill--danger'
+                        : item.status === 'due_soon'
+                        ? 'pill--warning'
+                        : 'pill--accent'
+                    }`}
+                  >
+                    {item.status === 'overdue'
+                      ? 'Overdue'
+                      : item.status === 'due_soon'
+                      ? 'Due soon'
+                      : 'On track'}
+                  </span>
+                </div>
+                <span style={{ color: 'var(--text-secondary)' }}>
+                  {item.dueDateLabel
+                    ? item.daysUntilDue !== null && item.daysUntilDue < 0
+                      ? `Target date passed (${item.dueDateLabel})`
+                      : `Next target: ${item.dueDateLabel}`
+                    : 'No due date yet'}
+                  {item.milesUntilDue !== null
+                    ? item.milesUntilDue <= 0
+                      ? ' • Mileage threshold reached'
+                      : ` • ${item.milesUntilDue.toLocaleString()} miles remaining`
+                    : ''}
+                </span>
+                {reminderMessage && (
+                  <span style={{ color: 'var(--text-secondary)' }}>{reminderMessage}</span>
+                )}
+                {reminderDate && (
+                  <span style={{ color: 'var(--text-secondary)' }}>
+                    Reminder heads-up around {reminderDate}
+                  </span>
+                )}
+              </li>
+            );
+          })}
+       </ul>
+     </section>
     </div>
   );
 }
