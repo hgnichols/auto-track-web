@@ -27,12 +27,69 @@ export default async function DashboardPage() {
     (item) => item.status === 'due_soon' || item.status === 'overdue'
   );
 
+  const dueSoonCount = reminderCandidates.filter((item) => item.status === 'due_soon').length;
+  const overdueCount = reminderCandidates.filter((item) => item.status === 'overdue').length;
+
+  const reminderSummaryParts: string[] = [];
+  if (overdueCount > 0) {
+    reminderSummaryParts.push(`${overdueCount} overdue`);
+  }
+  if (dueSoonCount > 0) {
+    reminderSummaryParts.push(`${dueSoonCount} due soon`);
+  }
+
+  const reminderSummary = reminderSummaryParts.join(' • ');
+
+  const mileageLabel =
+    vehicle.current_mileage !== null
+      ? `${vehicle.current_mileage.toLocaleString()} miles on the odometer`
+      : 'Mileage not set yet';
+
+  const nextServiceDetailParts: string[] = [];
+  if (nextService?.dueDateLabel) {
+    nextServiceDetailParts.push(`Target ${nextService.dueDateLabel}`);
+  }
+  if (nextService?.milesUntilDue !== null) {
+    nextServiceDetailParts.push(
+      nextService.milesUntilDue <= 0
+        ? 'Mileage threshold reached'
+        : `${nextService.milesUntilDue.toLocaleString()} miles remaining`
+    );
+  }
+
+  const nextServiceMeta = nextService
+    ? nextReminderLabel(nextService) ?? nextServiceDetailParts.join(' • ') || 'Stay on track'
+    : 'Add a maintenance schedule to start receiving reminders.';
+
+  const nextServiceSecondary = nextService
+    ? nextServiceDetailParts.length > 0
+      ? nextServiceDetailParts.join(' • ')
+      : undefined
+    : undefined;
+
+  const lastServiceDate = lastService
+    ? new Date(lastService.service_date).toLocaleDateString()
+    : null;
+
+  const lastServiceMeta = lastService
+    ? `Completed on ${lastServiceDate}${
+        lastService.mileage !== null ? ` • ${lastService.mileage.toLocaleString()} miles` : ''
+      }`
+    : 'Log a service to build history and personalized reminders.';
+
   return (
-    <div className="grid" style={{ gap: '2rem' }}>
+    <div className="dashboard-stack">
       {reminderCandidates.length > 0 && (
-        <section className="alert alert--warning">
-          <h2 style={{ margin: '0 0 0.35rem', fontSize: '1rem' }}>Upcoming maintenance</h2>
-          <ul style={{ margin: 0, paddingLeft: '1.1rem', color: '#fef3c7' }}>
+        <section className="notice notice--warning">
+          <div>
+            <h2 className="notice-title">Upcoming maintenance</h2>
+            {reminderSummary && (
+              <p className="text-secondary" style={{ margin: '0.25rem 0 0' }}>
+                {reminderSummary}
+              </p>
+            )}
+          </div>
+          <ul className="notice-list">
             {reminderCandidates.map((item) => (
               <li key={item.schedule.id}>
                 <strong>{item.schedule.service_name}</strong>{' '}
@@ -44,34 +101,58 @@ export default async function DashboardPage() {
         </section>
       )}
 
-      <section className="grid grid-two" style={{ gap: '1.5rem' }}>
-        <div className="card" style={{ display: 'grid', gap: '1rem' }}>
-          <header>
+      <section className="card dashboard-hero">
+        <div className="dashboard-hero__header">
+          <div>
             <div className="pill pill--accent">Your vehicle</div>
-            <h1 style={{ marginTop: '0.65rem', marginBottom: '0.35rem' }}>
+            <h1 className="hero-title">
               {vehicle.year ? `${vehicle.year} ` : ''}
               {vehicle.make} {vehicle.model}
             </h1>
-            <p style={{ margin: 0, color: 'var(--text-secondary)' }}>
-              {vehicle.current_mileage !== null
-                ? `${vehicle.current_mileage.toLocaleString()} miles`
-                : 'Mileage not set yet'}
-            </p>
-          </header>
+            <p className="hero-subtitle">{mileageLabel}</p>
+          </div>
 
-          <footer style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <div className="hero-actions">
             <Link href="/service/new" className="cta-button">
               + Log Service
             </Link>
             <Link href="/timeline" className="cta-button cta-button--ghost">
               View Timeline
             </Link>
-          </footer>
+          </div>
         </div>
 
-        <div className="card" style={{ display: 'grid', gap: '1rem' }}>
-          <header style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <h2 style={{ margin: 0, fontSize: '1.15rem' }}>Next up</h2>
+        <div className="hero-stats">
+          <div className="stat-block">
+            <span className="stat-label">Next reminder</span>
+            <span className="stat-value">
+              {nextService ? nextService.schedule.service_name : 'No service scheduled'}
+            </span>
+            <span className="stat-meta">{nextServiceMeta}</span>
+            {nextServiceSecondary && <span className="text-tertiary">{nextServiceSecondary}</span>}
+          </div>
+          <div className="stat-block">
+            <span className="stat-label">Last service</span>
+            <span className="stat-value">
+              {lastService ? lastService.service_name : 'Not logged yet'}
+            </span>
+            <span className="stat-meta">{lastServiceMeta}</span>
+            {lastService?.notes && <span className="text-tertiary">“{lastService.notes}”</span>}
+          </div>
+        </div>
+      </section>
+
+      <div className="dashboard-columns">
+        <section className="card panel">
+          <header className="panel-header">
+            <div>
+              <h2 className="panel-title">Next up</h2>
+              <p className="panel-subtitle">
+                {nextService
+                  ? 'Your next recommended maintenance task.'
+                  : 'Add a schedule to start receiving proactive reminders.'}
+              </p>
+            </div>
             {nextService && (
               <span
                 className={clsx(
@@ -90,68 +171,51 @@ export default async function DashboardPage() {
           </header>
 
           {nextService ? (
-            <div style={{ display: 'grid', gap: '0.35rem' }}>
-              <h3 style={{ margin: 0 }}>{nextService.schedule.service_name}</h3>
-              {nextService.dueDateLabel && (
-                <p style={{ margin: 0, color: 'var(--text-secondary)' }}>
-                  Target date: {nextService.dueDateLabel}
-                </p>
-              )}
-              {nextService.milesUntilDue !== null && (
-                <p style={{ margin: 0, color: 'var(--text-secondary)' }}>
-                  {nextService.milesUntilDue <= 0
-                    ? 'Mileage threshold reached'
-                    : `${nextService.milesUntilDue.toLocaleString()} miles remaining`}
-                </p>
-              )}
-              <p style={{ margin: '0.5rem 0 0', color: 'var(--text-secondary)' }}>
-                {nextReminderLabel(nextService) ?? 'Stay on track'}
-              </p>
+            <div className="panel-body">
+              <h3 className="panel-heading">{nextService.schedule.service_name}</h3>
+              <p className="muted">{nextReminderLabel(nextService) ?? 'Stay on track'}</p>
+              <ul className="detail-list">
+                {nextService.dueDateLabel && <li>Target date: {nextService.dueDateLabel}</li>}
+                {nextService.milesUntilDue !== null && (
+                  <li>
+                    {nextService.milesUntilDue <= 0
+                      ? 'Mileage threshold reached'
+                      : `${nextService.milesUntilDue.toLocaleString()} miles remaining`}
+                  </li>
+                )}
+              </ul>
             </div>
           ) : (
             <div className="empty-state">
-              <p style={{ margin: 0 }}>Add your first service to see reminders here.</p>
+              <p>Add your first service to see reminders here.</p>
             </div>
           )}
-        </div>
-      </section>
+        </section>
 
-      <section className="card" style={{ display: 'grid', gap: '1rem' }}>
-        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <h2 style={{ margin: 0, fontSize: '1.15rem' }}>Last service</h2>
-            <p style={{ margin: '0.25rem 0 0', color: 'var(--text-secondary)' }}>
-              See the latest work done on your car.
-            </p>
-          </div>
-          <Link href="/service/new" className="cta-button cta-button--ghost">
-            Log another
-          </Link>
-        </header>
+        <section className="card panel">
+          <header className="panel-header">
+            <div>
+              <h2 className="panel-title">Last service</h2>
+              <p className="panel-subtitle">A quick snapshot of your most recent maintenance.</p>
+            </div>
+            <Link href="/service/new" className="cta-button cta-button--ghost">
+              Log another
+            </Link>
+          </header>
 
-        {lastService ? (
-          <div style={{ display: 'grid', gap: '0.35rem' }}>
-            <strong>{lastService.service_name}</strong>
-            <p style={{ margin: 0, color: 'var(--text-secondary)' }}>
-              Completed on {new Date(lastService.service_date).toLocaleDateString()}
-              {lastService.mileage !== null
-                ? ` • ${lastService.mileage.toLocaleString()} miles`
-                : ''}
-            </p>
-            {lastService.notes && (
-              <p style={{ margin: '0.25rem 0 0', color: 'var(--text-secondary)' }}>
-                “{lastService.notes}”
-              </p>
-            )}
-          </div>
-        ) : (
-          <div className="empty-state">
-            <p style={{ margin: 0 }}>
-              No services logged yet. Tap “Log Service” to add your first maintenance record.
-            </p>
-          </div>
-        )}
-      </section>
+          {lastService ? (
+            <div className="panel-body">
+              <h3 className="panel-heading">{lastService.service_name}</h3>
+              <p className="muted">{lastServiceMeta}</p>
+              {lastService.notes && <p className="text-tertiary">“{lastService.notes}”</p>}
+            </div>
+          ) : (
+            <div className="empty-state">
+              <p>No services logged yet. Tap “Log Service” to add your first maintenance record.</p>
+            </div>
+          )}
+        </section>
+      </div>
     </div>
   );
 }
