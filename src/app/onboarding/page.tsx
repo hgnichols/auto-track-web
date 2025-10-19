@@ -2,6 +2,14 @@ import { submitVehicleAction } from './actions';
 import { requireDeviceId } from '../../lib/device';
 import { getDashboardData } from '../../lib/repository';
 import { redirect } from 'next/navigation';
+import {
+  cardClass,
+  formFieldClass,
+  inputClass,
+  mutedTextClass,
+  pillVariants,
+  primaryButtonClass
+} from '../../lib/ui';
 
 export default async function OnboardingPage() {
   const deviceId = requireDeviceId('/onboarding');
@@ -12,20 +20,22 @@ export default async function OnboardingPage() {
   }
 
   return (
-    <div style={{ maxWidth: 640, margin: '3rem auto', display: 'grid', gap: '1.5rem' }}>
-      <header style={{ textAlign: 'center', display: 'grid', gap: '0.5rem' }}>
-        <div className="pill pill--accent">Welcome to AutoTrack</div>
-        <h1 style={{ margin: 0, fontSize: '2rem' }}>Set up your vehicle</h1>
-        <p style={{ margin: 0, color: 'var(--text-secondary)' }}>
+    <div className="mx-auto grid w-full max-w-2xl gap-6 px-4 py-12 sm:py-16">
+      <header className="grid gap-3 text-center">
+        <div className={pillVariants.accent}>Welcome to AutoTrack</div>
+        <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Set up your vehicle</h1>
+        <p className={`${mutedTextClass} mx-auto max-w-xl text-base`}>
           Add your car once. We will preload smart maintenance reminders so you can stay on track.
         </p>
       </header>
 
-      <section className="card" style={{ display: 'grid', gap: '1.5rem' }}>
-        <form action={submitVehicleAction} className="form">
-          <div className="grid" style={{ gap: '1rem' }}>
-            <div className="form-field">
-              <label htmlFor="year">Year</label>
+      <section className={`${cardClass} grid gap-6`}>
+        <form action={submitVehicleAction} className="grid gap-6">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className={formFieldClass}>
+              <label htmlFor="year" className="text-sm font-medium text-slate-600">
+                Year
+              </label>
               <input
                 id="year"
                 name="year"
@@ -33,22 +43,31 @@ export default async function OnboardingPage() {
                 min="1970"
                 max="2099"
                 placeholder="e.g. 2019"
+                className={inputClass}
               />
             </div>
-            <div className="form-field">
-              <label htmlFor="make">Make *</label>
-              <input id="make" name="make" type="text" required placeholder="e.g. Toyota" />
+            <div className={formFieldClass}>
+              <label htmlFor="make" className="text-sm font-medium text-slate-600">
+                Make *
+              </label>
+              <input id="make" name="make" type="text" required placeholder="e.g. Toyota" className={inputClass} />
             </div>
-            <div className="form-field">
-              <label htmlFor="model">Model *</label>
-              <input id="model" name="model" type="text" required placeholder="e.g. Camry" />
+            <div className={formFieldClass}>
+              <label htmlFor="model" className="text-sm font-medium text-slate-600">
+                Model *
+              </label>
+              <input id="model" name="model" type="text" required placeholder="e.g. Camry" className={inputClass} />
             </div>
-            <div className="form-field">
-              <label htmlFor="vin">VIN</label>
-              <input id="vin" name="vin" type="text" placeholder="Optional" />
+            <div className={formFieldClass}>
+              <label htmlFor="vin" className="text-sm font-medium text-slate-600">
+                VIN
+              </label>
+              <input id="vin" name="vin" type="text" placeholder="Optional" className={inputClass} />
             </div>
-            <div className="form-field">
-              <label htmlFor="current_mileage">Current mileage</label>
+            <div className={formFieldClass}>
+              <label htmlFor="current_mileage" className="text-sm font-medium text-slate-600">
+                Current mileage
+              </label>
               <input
                 id="current_mileage"
                 name="current_mileage"
@@ -56,12 +75,13 @@ export default async function OnboardingPage() {
                 min="0"
                 step="1"
                 placeholder="e.g. 54000"
+                className={inputClass}
               />
             </div>
           </div>
 
-          <div className="form-actions">
-            <button type="submit" className="cta-button">
+          <div className="flex justify-end">
+            <button type="submit" className={primaryButtonClass}>
               Save vehicle
             </button>
           </div>
