@@ -19,10 +19,11 @@ export default function AppShell({ children }: PropsWithChildren) {
     <div className="app-container">
       {!hideNav && (
         <header className="nav-bar">
-          <div>
-            <Link href="/">
-              <strong>AutoTrack</strong>
+          <div className="nav-brand">
+            <Link href="/" className="nav-logo">
+              AutoTrack
             </Link>
+            <span className="nav-tagline">Maintenance made simple</span>
           </div>
 
           <nav className="nav-links">
@@ -44,9 +45,7 @@ export default function AppShell({ children }: PropsWithChildren) {
         </header>
       )}
 
-      <main className="main-content" style={{ padding: '1.5rem', width: '100%', maxWidth: 960, margin: '0 auto' }}>
-        {children}
-      </main>
+      <main className="main-content">{children}</main>
     </div>
   );
 }
