@@ -2,13 +2,17 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { requireDeviceId } from '../lib/device';
 import { getDashboardData } from '../lib/repository';
+import { getLastService, getUpcomingServices, nextReminderLabel, pickNextDueService } from '../lib/dashboard-helpers';
 import {
-  getLastService,
-  getUpcomingServices,
-  nextReminderLabel,
-  pickNextDueService
-} from '../lib/dashboard-helpers';
-import clsx from 'clsx';
+  cardClass,
+  ghostButtonClass,
+  primaryButtonClass,
+  pillVariants,
+  mutedTextClass,
+  tertiaryTextClass,
+  statusPillClass,
+  emptyStateClass
+} from '../lib/ui';
 
 export default async function DashboardPage() {
   const deviceId = requireDeviceId('/');
@@ -77,19 +81,20 @@ export default async function DashboardPage() {
       }`
     : 'Log a service to build history and personalized reminders.';
 
+  const heroCardClass = `${cardClass} relative overflow-hidden bg-[linear-gradient(145deg,_rgba(10,132,255,0.12),_rgba(255,255,255,0.9))]`;
+  const panelCardClass = `${cardClass} grid gap-6`;
+
   return (
-    <div className="dashboard-stack">
+    <div className="grid gap-10">
       {reminderCandidates.length > 0 && (
-        <section className="notice notice--warning">
-          <div>
-            <h2 className="notice-title">Upcoming maintenance</h2>
+        <section className="grid gap-4 rounded-3xl border border-amber-200/70 bg-amber-50/90 p-7 text-slate-700 shadow-soft">
+          <div className="space-y-2">
+            <h2 className="text-lg font-semibold tracking-tight text-slate-900">Upcoming maintenance</h2>
             {reminderSummary && (
-              <p className="text-secondary" style={{ margin: '0.25rem 0 0' }}>
-                {reminderSummary}
-              </p>
+              <p className={`${mutedTextClass} mt-1 text-base sm:text-sm`}>{reminderSummary}</p>
             )}
           </div>
-          <ul className="notice-list">
+          <ul className="grid gap-2 text-sm text-slate-600">
             {reminderCandidates.map((item) => (
               <li key={item.schedule.id}>
                 <strong>{item.schedule.service_name}</strong>{' '}
@@ -101,66 +106,69 @@ export default async function DashboardPage() {
         </section>
       )}
 
-      <section className="card dashboard-hero">
-        <div className="dashboard-hero__header">
-          <div>
-            <div className="pill pill--accent">Your vehicle</div>
-            <h1 className="hero-title">
+      <section className={heroCardClass}>
+        <div className="relative z-10 flex flex-col gap-7 md:flex-row md:items-center md:justify-between">
+          <div className="space-y-3">
+            <div className={pillVariants.accent}>Your vehicle</div>
+            <h1 className="text-3xl font-semibold tracking-tight text-slate-900 md:text-4xl">
               {vehicle.year ? `${vehicle.year} ` : ''}
               {vehicle.make} {vehicle.model}
             </h1>
-            <p className="hero-subtitle">{mileageLabel}</p>
+            <p className="text-base text-slate-500">{mileageLabel}</p>
           </div>
 
-          <div className="hero-actions">
-            <Link href="/service/new" className="cta-button">
+          <div className="flex flex-wrap gap-3">
+            <Link href="/service/new" className={primaryButtonClass}>
               + Log Service
             </Link>
-            <Link href="/timeline" className="cta-button cta-button--ghost">
+            <Link href="/timeline" className={ghostButtonClass}>
               View Timeline
             </Link>
           </div>
         </div>
 
-        <div className="hero-stats">
-          <div className="stat-block">
-            <span className="stat-label">Next reminder</span>
-            <span className="stat-value">
+        <div className="relative z-10 mt-9 grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-1 rounded-2xl border border-white/50 bg-white/70 p-6 shadow-inner backdrop-blur">
+            <span className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">
+              Next reminder
+            </span>
+            <span className="text-xl font-bold tracking-tight text-slate-900">
               {nextService ? nextService.schedule.service_name : 'No service scheduled'}
             </span>
-            <span className="stat-meta">{nextServiceMeta}</span>
-            {nextServiceSecondary && <span className="text-tertiary">{nextServiceSecondary}</span>}
+            <span className="text-sm text-slate-500">{nextServiceMeta}</span>
+            {nextServiceSecondary && <span className={tertiaryTextClass}>{nextServiceSecondary}</span>}
           </div>
-          <div className="stat-block">
-            <span className="stat-label">Last service</span>
-            <span className="stat-value">
+          <div className="grid gap-1 rounded-2xl border border-white/50 bg-white/70 p-6 shadow-inner backdrop-blur">
+            <span className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">
+              Last service
+            </span>
+            <span className="text-xl font-bold tracking-tight text-slate-900">
               {lastService ? lastService.service_name : 'Not logged yet'}
             </span>
-            <span className="stat-meta">{lastServiceMeta}</span>
-            {lastService?.notes && <span className="text-tertiary">“{lastService.notes}”</span>}
+            <span className="text-sm text-slate-500">{lastServiceMeta}</span>
+            {lastService?.notes && <span className={tertiaryTextClass}>“{lastService.notes}”</span>}
           </div>
         </div>
+
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -right-[20%] -bottom-[45%] h-[420px] w-[420px] translate-y-[20%] rounded-full bg-[radial-gradient(circle,_rgba(10,132,255,0.18),_transparent_70%)]"
+        />
       </section>
 
-      <div className="dashboard-columns">
-        <section className="card panel">
-          <header className="panel-header">
-            <div>
-              <h2 className="panel-title">Next up</h2>
-              <p className="panel-subtitle">
+      <div className="grid gap-7 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+        <section className={panelCardClass}>
+          <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="space-y-2">
+              <h2 className="text-xl font-semibold tracking-tight text-slate-900">Next up</h2>
+              <p className={mutedTextClass}>
                 {nextService
                   ? 'Your next recommended maintenance task.'
                   : 'Add a schedule to start receiving proactive reminders.'}
               </p>
             </div>
             {nextService && (
-              <span
-                className={clsx(
-                  'pill',
-                  nextService.status === 'overdue' && 'pill--danger',
-                  nextService.status === 'due_soon' && 'pill--warning'
-                )}
-              >
+              <span className={statusPillClass(nextService.status)}>
                 {nextService.status === 'overdue'
                   ? 'Overdue'
                   : nextService.status === 'due_soon'
@@ -171,10 +179,12 @@ export default async function DashboardPage() {
           </header>
 
           {nextService ? (
-            <div className="panel-body">
-              <h3 className="panel-heading">{nextService.schedule.service_name}</h3>
-              <p className="muted">{nextReminderLabel(nextService) ?? 'Stay on track'}</p>
-              <ul className="detail-list">
+            <div className="grid gap-3">
+              <h3 className="text-lg font-semibold tracking-tight text-slate-900">
+                {nextService.schedule.service_name}
+              </h3>
+              <p className={mutedTextClass}>{nextReminderLabel(nextService) ?? 'Stay on track'}</p>
+              <ul className="list-disc space-y-1 pl-5 text-sm text-slate-500">
                 {nextService.dueDateLabel && <li>Target date: {nextService.dueDateLabel}</li>}
                 {nextService.milesUntilDue !== null && (
                   <li>
@@ -186,31 +196,31 @@ export default async function DashboardPage() {
               </ul>
             </div>
           ) : (
-            <div className="empty-state">
+            <div className={emptyStateClass}>
               <p>Add your first service to see reminders here.</p>
             </div>
           )}
         </section>
 
-        <section className="card panel">
-          <header className="panel-header">
-            <div>
-              <h2 className="panel-title">Last service</h2>
-              <p className="panel-subtitle">A quick snapshot of your most recent maintenance.</p>
+        <section className={panelCardClass}>
+          <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="space-y-2">
+              <h2 className="text-xl font-semibold tracking-tight text-slate-900">Last service</h2>
+              <p className={mutedTextClass}>A quick snapshot of your most recent maintenance.</p>
             </div>
-            <Link href="/service/new" className="cta-button cta-button--ghost">
+            <Link href="/service/new" className={ghostButtonClass}>
               Log another
             </Link>
           </header>
 
           {lastService ? (
-            <div className="panel-body">
-              <h3 className="panel-heading">{lastService.service_name}</h3>
-              <p className="muted">{lastServiceMeta}</p>
-              {lastService.notes && <p className="text-tertiary">“{lastService.notes}”</p>}
+            <div className="grid gap-3">
+              <h3 className="text-lg font-semibold tracking-tight text-slate-900">{lastService.service_name}</h3>
+              <p className={mutedTextClass}>{lastServiceMeta}</p>
+              {lastService.notes && <p className={`${tertiaryTextClass} italic`}>“{lastService.notes}”</p>}
             </div>
           ) : (
-            <div className="empty-state">
+            <div className={emptyStateClass}>
               <p>No services logged yet. Tap “Log Service” to add your first maintenance record.</p>
             </div>
           )}

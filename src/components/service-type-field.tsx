@@ -1,7 +1,9 @@
 'use client';
 
 import { type ChangeEvent, useState } from 'react';
+import clsx from 'clsx';
 import type { ServiceSchedule } from '../lib/types';
+import { formFieldClass, inputClass, mutedTextClass } from '../lib/ui';
 
 type Props = {
   schedules: ServiceSchedule[];
@@ -22,14 +24,17 @@ export default function ServiceTypeField({ schedules }: Props) {
   };
 
   return (
-    <div className="form-field" style={{ display: 'grid', gap: '0.75rem' }}>
-      <label htmlFor="schedule_id">Service</label>
+    <div className={clsx(formFieldClass, 'gap-3')}>
+      <label htmlFor="schedule_id" className="text-sm font-medium text-slate-600">
+        Service
+      </label>
       <select
         id="schedule_id"
         name="schedule_id"
         required
         value={selection}
         onChange={handleChange}
+        className={inputClass}
       >
         <option value="" disabled>
           Select service type
@@ -42,12 +47,7 @@ export default function ServiceTypeField({ schedules }: Props) {
         <option value="custom">Custom service</option>
       </select>
 
-      <div
-        style={{
-          display: mode === 'custom' ? 'grid' : 'none',
-          gap: '0.35rem'
-        }}
-      >
+      <div className={clsx('grid gap-2', mode !== 'custom' && 'hidden')}>
         <input
           id="custom_service_name"
           name="custom_service_name"
@@ -55,8 +55,9 @@ export default function ServiceTypeField({ schedules }: Props) {
           placeholder="Describe the service (e.g. Battery replacement)"
           required={mode === 'custom'}
           disabled={mode !== 'custom'}
+          className={inputClass}
         />
-        <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+        <p className={mutedTextClass}>
           We&apos;ll log custom services without automatic reminders.
         </p>
       </div>

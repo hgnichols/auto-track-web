@@ -5,6 +5,15 @@ import { getDashboardData } from '../../../lib/repository';
 import { submitServiceAction } from './actions';
 import { getUpcomingServices, nextReminderLabel, reminderPreviewDate } from '../../../lib/dashboard-helpers';
 import ServiceTypeField from '../../../components/service-type-field';
+import {
+  cardClass,
+  formFieldClass,
+  ghostButtonClass,
+  inputClass,
+  mutedTextClass,
+  primaryButtonClass,
+  statusPillClass
+} from '../../../lib/ui';
 
 export default async function NewServicePage() {
   const deviceId = requireDeviceId('/service/new');
@@ -18,25 +27,29 @@ export default async function NewServicePage() {
   const upcoming = getUpcomingServices(schedules, vehicle);
 
   return (
-    <div className="grid" style={{ gap: '1.5rem', maxWidth: 680, margin: '0 auto' }}>
-      <header style={{ display: 'grid', gap: '0.35rem' }}>
-        <h1 style={{ margin: 0 }}>Log service</h1>
-        <p style={{ margin: 0, color: 'var(--text-secondary)' }}>
+    <div className="mx-auto grid w-full max-w-3xl gap-6 px-4 py-12 sm:py-16">
+      <header className="grid gap-2">
+        <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Log service</h1>
+        <p className={`${mutedTextClass} text-base`}>
           Keep your history up to date. We will update reminders automatically.
         </p>
       </header>
 
-      <section className="card" style={{ display: 'grid', gap: '1.5rem' }}>
-        <form action={submitServiceAction} className="form">
+      <section className={`${cardClass} grid gap-6`}>
+        <form action={submitServiceAction} className="grid gap-6">
           <ServiceTypeField schedules={schedules} />
 
-          <div className="form-field">
-            <label htmlFor="service_date">Service date</label>
-            <input id="service_date" name="service_date" type="date" required />
+          <div className={formFieldClass}>
+            <label htmlFor="service_date" className="text-sm font-medium text-slate-600">
+              Service date
+            </label>
+            <input id="service_date" name="service_date" type="date" required className={inputClass} />
           </div>
 
-          <div className="form-field">
-            <label htmlFor="mileage">Mileage</label>
+          <div className={formFieldClass}>
+            <label htmlFor="mileage" className="text-sm font-medium text-slate-600">
+              Mileage
+            </label>
             <input
               id="mileage"
               name="mileage"
@@ -48,78 +61,78 @@ export default async function NewServicePage() {
                   ? `~${vehicle.current_mileage.toLocaleString()}`
                   : 'Optional'
               }
+              className={inputClass}
             />
           </div>
 
-          <div className="form-field">
-            <label htmlFor="cost">Cost</label>
-            <input id="cost" name="cost" type="number" min="0" step="0.01" placeholder="Optional" />
+          <div className={formFieldClass}>
+            <label htmlFor="cost" className="text-sm font-medium text-slate-600">
+              Cost
+            </label>
+            <input
+              id="cost"
+              name="cost"
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="Optional"
+              className={inputClass}
+            />
           </div>
 
-          <div className="form-field">
-            <label htmlFor="notes">Notes</label>
+          <div className={formFieldClass}>
+            <label htmlFor="notes" className="text-sm font-medium text-slate-600">
+              Notes
+            </label>
             <textarea
               id="notes"
               name="notes"
               rows={3}
               placeholder="Add any details you want to remember"
+              className={`${inputClass} min-h-[120px] resize-y`}
             />
           </div>
 
-          <div className="form-actions">
-            <Link href="/" className="cta-button cta-button--ghost">
+          <div className="flex flex-wrap justify-end gap-3">
+            <Link href="/" className={ghostButtonClass}>
               Cancel
             </Link>
-            <button type="submit" className="cta-button">
+            <button type="submit" className={primaryButtonClass}>
               Save log
             </button>
           </div>
         </form>
       </section>
 
-      <section className="card" style={{ display: 'grid', gap: '0.75rem' }}>
-        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{ margin: 0, fontSize: '1.05rem' }}>Reminder preview</h2>
-          <Link href="/timeline" className="cta-button cta-button--ghost">
+      <section className={`${cardClass} grid gap-4`}>
+        <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h2 className="text-lg font-semibold tracking-tight text-slate-900">Reminder preview</h2>
+          <Link href="/timeline" className={ghostButtonClass}>
             View timeline
           </Link>
         </header>
 
-        <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'grid', gap: '0.75rem' }}>
+        <ul className="grid gap-3">
           {upcoming.map((item) => {
             const reminderDate = reminderPreviewDate(item);
             const reminderMessage = nextReminderLabel(item);
+            const statusLabel =
+              item.status === 'overdue'
+                ? 'Overdue'
+                : item.status === 'due_soon'
+                ? 'Due soon'
+                : 'On track';
 
             return (
               <li
                 key={item.schedule.id}
-                style={{
-                  display: 'grid',
-                  gap: '0.35rem',
-                  padding: '0.75rem',
-                  borderRadius: 'var(--radius-md)',
-                  background: 'var(--surface-muted)'
-                }}
+                className="grid gap-2 rounded-2xl bg-slate-100/80 p-4 text-sm text-slate-600"
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <strong>{item.schedule.service_name}</strong>
-                  <span
-                    className={`pill ${
-                      item.status === 'overdue'
-                        ? 'pill--danger'
-                        : item.status === 'due_soon'
-                        ? 'pill--warning'
-                        : 'pill--accent'
-                    }`}
-                  >
-                    {item.status === 'overdue'
-                      ? 'Overdue'
-                      : item.status === 'due_soon'
-                      ? 'Due soon'
-                      : 'On track'}
-                  </span>
+                <div className="flex items-center justify-between gap-3">
+                  <strong className="text-slate-900">{item.schedule.service_name}</strong>
+                  <span className={statusPillClass(item.status)}>{statusLabel}</span>
                 </div>
-                <span style={{ color: 'var(--text-secondary)' }}>
+                <span className={mutedTextClass}>
                   {item.dueDateLabel
                     ? item.daysUntilDue !== null && item.daysUntilDue < 0
                       ? `Target date passed (${item.dueDateLabel})`
@@ -131,19 +144,15 @@ export default async function NewServicePage() {
                       : ` • ${item.milesUntilDue.toLocaleString()} miles remaining`
                     : ''}
                 </span>
-                {reminderMessage && (
-                  <span style={{ color: 'var(--text-secondary)' }}>{reminderMessage}</span>
-                )}
+                {reminderMessage && <span className={mutedTextClass}>{reminderMessage}</span>}
                 {reminderDate && (
-                  <span style={{ color: 'var(--text-secondary)' }}>
-                    Reminder heads-up around {reminderDate}
-                  </span>
+                  <span className={mutedTextClass}>Reminder heads-up around {reminderDate}</span>
                 )}
               </li>
             );
           })}
-       </ul>
-     </section>
+        </ul>
+      </section>
     </div>
   );
 }
