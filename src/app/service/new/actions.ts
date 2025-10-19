@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { requireDeviceId } from '../../../lib/device';
-import { createServiceLog, getVehicleByDevice } from '../../../lib/repository';
+import { createCustomServiceLog, createServiceLog, getVehicleByDevice } from '../../../lib/repository';
 
 export async function submitServiceAction(formData: FormData) {
   const deviceId = requireDeviceId('/service/new');
@@ -13,10 +13,10 @@ export async function submitServiceAction(formData: FormData) {
     redirect('/onboarding');
   }
 
-  const scheduleId = String(formData.get('schedule_id') ?? '');
+  const serviceSelection = String(formData.get('schedule_id') ?? '').trim();
   const serviceDate = String(formData.get('service_date') ?? '').trim();
 
-  if (!scheduleId) {
+  if (!serviceSelection) {
     throw new Error('Service type is required.');
   }
 
@@ -24,6 +24,10 @@ export async function submitServiceAction(formData: FormData) {
     throw new Error('Service date is required.');
   }
 
+  const isCustom = serviceSelection === 'custom';
+  const customServiceValue = formData.get('custom_service_name');
+  const customServiceName =
+    typeof customServiceValue === 'string' ? customServiceValue.trim() : '';
   const mileageValue = formData.get('mileage');
   const costValue = formData.get('cost');
   const notesValue = formData.get('notes');
@@ -38,13 +42,31 @@ export async function submitServiceAction(formData: FormData) {
       ? Number.parseFloat(costValue)
       : null;
 
-  await createServiceLog(deviceId, vehicle, {
-    scheduleId,
-    serviceDate,
-    mileage: Number.isFinite(mileage) ? mileage : null,
-    cost: Number.isFinite(cost) ? cost : null,
-    notes: typeof notesValue === 'string' ? notesValue : null
-  });
+  const sanitizedMileage = Number.isFinite(mileage) ? mileage : null;
+  const sanitizedCost = Number.isFinite(cost) ? cost : null;
+  const sanitizedNotes = typeof notesValue === 'string' ? notesValue : null;
+
+  if (isCustom) {
+    if (!customServiceName) {
+      throw new Error('Service name is required for custom logs.');
+    }
+
+    await createCustomServiceLog(deviceId, vehicle, {
+      serviceName: customServiceName,
+      serviceDate,
+      mileage: sanitizedMileage,
+      cost: sanitizedCost,
+      notes: sanitizedNotes
+    });
+  } else {
+    await createServiceLog(deviceId, vehicle, {
+      scheduleId: serviceSelection,
+      serviceDate,
+      mileage: sanitizedMileage,
+      cost: sanitizedCost,
+      notes: sanitizedNotes
+    });
+  }
 
   revalidatePath('/');
   revalidatePath('/timeline');
