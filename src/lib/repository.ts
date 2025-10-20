@@ -6,7 +6,8 @@ import type {
   MaintenanceStatus,
   ServiceLog,
   ServiceSchedule,
-  Vehicle
+  Vehicle,
+  VehicleCatalogEntry
 } from './types';
 
 const DATE_FORMAT = 'yyyy-MM-dd';
@@ -35,6 +36,86 @@ type CreateCustomServiceLogPayload = {
   cost?: number | null;
   notes?: string | null;
 };
+
+function normalizeCatalogValue(raw: string) {
+  return raw.trim().toUpperCase();
+}
+
+export async function getVehicleCatalogYears(): Promise<number[]> {
+  const client = createAdminClient();
+  const { data, error } = await client.rpc('get_vehicle_catalog_years');
+
+  if (error) {
+    throw error;
+  }
+
+  const rows = (data ?? []) as Array<{ year: number }>;
+  return rows
+    .map((row) => row.year)
+    .filter((year) => typeof year === 'number')
+    .map((year) => Number(year));
+}
+
+export async function getVehicleCatalogMakes(year: number) {
+  const client = createAdminClient();
+  const { data, error } = await client.rpc('get_vehicle_catalog_makes', { p_year: year });
+
+  if (error) {
+    throw error;
+  }
+
+  const rows = (data ?? []) as Array<{ make: string; make_display: string }>;
+  return rows.map((row) => ({
+    make: row.make,
+    make_display: row.make_display
+  }));
+}
+
+export async function getVehicleCatalogModels(year: number, make: string) {
+  const client = createAdminClient();
+  const { data, error } = await client.rpc('get_vehicle_catalog_models', {
+    p_year: year,
+    p_make: normalizeCatalogValue(make)
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  const rows = (data ?? []) as Array<{ model: string; model_display: string }>;
+  return rows.map((row) => ({
+    model: row.model,
+    model_display: row.model_display
+  }));
+}
+
+export async function getVehicleCatalogEntry(
+  year: number,
+  make: string,
+  model: string
+): Promise<VehicleCatalogEntry | null> {
+  const client = createAdminClient();
+  const { data, error } = await client.rpc('get_vehicle_catalog_entry', {
+    p_year: year,
+    p_make: normalizeCatalogValue(make),
+    p_model: normalizeCatalogValue(model)
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  if (Array.isArray(data)) {
+    const [entry] = data as VehicleCatalogEntry[];
+    return entry ?? null;
+  }
+
+  return data as VehicleCatalogEntry;
+}
 
 export async function ensureDevice(deviceId: string) {
   const client = createAdminClient();

@@ -1,15 +1,8 @@
-import { submitVehicleAction } from './actions';
 import { requireDeviceId } from '../../lib/device';
-import { getDashboardData } from '../../lib/repository';
+import { getDashboardData, getVehicleCatalogYears } from '../../lib/repository';
 import { redirect } from 'next/navigation';
-import {
-  cardClass,
-  formFieldClass,
-  inputClass,
-  mutedTextClass,
-  pillVariants,
-  primaryButtonClass
-} from '../../lib/ui';
+import { cardClass, mutedTextClass, pillVariants } from '../../lib/ui';
+import { VehicleForm } from './vehicle-form';
 
 export default async function OnboardingPage() {
   const deviceId = requireDeviceId('/onboarding');
@@ -18,6 +11,9 @@ export default async function OnboardingPage() {
   if (existing?.vehicle) {
     redirect('/');
   }
+
+  const years = await getVehicleCatalogYears();
+  const hasCatalog = years.length > 0;
 
   return (
     <div className="mx-auto grid w-full max-w-2xl gap-6 px-4 py-12 sm:py-16">
@@ -30,74 +26,17 @@ export default async function OnboardingPage() {
       </header>
 
       <section className={`${cardClass} grid gap-6`}>
-        <form action={submitVehicleAction} className="grid gap-6">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className={formFieldClass}>
-              <label htmlFor="year" className="text-sm font-medium text-slate-600">
-                Year
-              </label>
-              <input
-                id="year"
-                name="year"
-                type="number"
-                min="1970"
-                max="2099"
-                placeholder="e.g. 2019"
-                className={inputClass}
-              />
-            </div>
-            <div className={formFieldClass}>
-              <label htmlFor="make" className="text-sm font-medium text-slate-600">
-                Make *
-              </label>
-              <input id="make" name="make" type="text" required placeholder="e.g. Toyota" className={inputClass} />
-            </div>
-            <div className={formFieldClass}>
-              <label htmlFor="model" className="text-sm font-medium text-slate-600">
-                Model *
-              </label>
-              <input id="model" name="model" type="text" required placeholder="e.g. Camry" className={inputClass} />
-            </div>
-            <div className={formFieldClass}>
-              <label htmlFor="vin" className="text-sm font-medium text-slate-600">
-                VIN
-              </label>
-              <input id="vin" name="vin" type="text" placeholder="Optional" className={inputClass} />
-            </div>
-            <div className={formFieldClass}>
-              <label htmlFor="current_mileage" className="text-sm font-medium text-slate-600">
-                Current mileage
-              </label>
-              <input
-                id="current_mileage"
-                name="current_mileage"
-                type="number"
-                min="0"
-                step="1"
-                placeholder="e.g. 54000"
-                className={inputClass}
-              />
-            </div>
-            <div className={formFieldClass}>
-              <label htmlFor="contact_email" className="text-sm font-medium text-slate-600">
-                Reminder email
-              </label>
-              <input
-                id="contact_email"
-                name="contact_email"
-                type="email"
-                placeholder="Optional — name@email.com"
-                className={inputClass}
-              />
-            </div>
+        {hasCatalog ? (
+          <VehicleForm years={years} />
+        ) : (
+          <div className="space-y-4 text-center">
+            <h2 className="text-lg font-semibold text-slate-900">Vehicle catalog unavailable</h2>
+            <p className={mutedTextClass}>
+              We could not load the vehicle catalog. Run the generator script and seed the database,
+              then refresh to continue onboarding.
+            </p>
           </div>
-
-          <div className="flex justify-end">
-            <button type="submit" className={primaryButtonClass}>
-              Save vehicle
-            </button>
-          </div>
-        </form>
+        )}
       </section>
     </div>
   );

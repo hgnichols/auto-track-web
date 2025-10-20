@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { requireDeviceId } from '../../lib/device';
-import { createVehicle, ensureDevice } from '../../lib/repository';
+import { createVehicle, ensureDevice, getVehicleCatalogEntry } from '../../lib/repository';
 
 export async function submitVehicleAction(formData: FormData) {
   const deviceId = requireDeviceId('/onboarding');
@@ -13,13 +13,26 @@ export async function submitVehicleAction(formData: FormData) {
   const makeValue = formData.get('make');
   const modelValue = formData.get('model');
 
-  if (!makeValue || !modelValue) {
-    throw new Error('Make and model are required.');
+  if (!yearValue || !makeValue || !modelValue) {
+    throw new Error('Please select a year, make, and model.');
   }
 
-  const year = typeof yearValue === 'string' && yearValue.trim().length > 0 ? Number(yearValue) : null;
-  const make = String(makeValue).trim();
-  const model = String(modelValue).trim();
+  const parsedYear =
+    typeof yearValue === 'string' && yearValue.trim().length > 0 ? Number.parseInt(yearValue, 10) : NaN;
+
+  if (!Number.isFinite(parsedYear)) {
+    throw new Error('Please select a valid model year.');
+  }
+
+  const catalogEntry = await getVehicleCatalogEntry(parsedYear, String(makeValue), String(modelValue));
+
+  if (!catalogEntry) {
+    throw new Error('That year, make, and model combination was not found. Please try again.');
+  }
+
+  const year = catalogEntry.year;
+  const make = catalogEntry.make_display;
+  const model = catalogEntry.model_display;
   const vinValue = formData.get('vin');
   const mileageValue = formData.get('current_mileage');
   const emailValue = formData.get('contact_email');

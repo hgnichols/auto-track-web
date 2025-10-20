@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "generate:vehicle-catalog": "node scripts/generate-vehicle-catalog.mjs",
+    "seed:vehicle-catalog": "node scripts/seed-vehicle-catalog.mjs",
+    "export:vehicle-catalog-csv": "node scripts/export-vehicle-catalog-csv.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.2",

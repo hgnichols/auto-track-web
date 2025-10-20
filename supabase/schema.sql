@@ -20,6 +20,66 @@ create table if not exists public.vehicles (
   constraint vehicles_unique_device unique (device_id)
 );
 
+create table if not exists public.vehicle_catalog (
+  year smallint not null,
+  make text not null,
+  make_display text not null,
+  model text not null,
+  model_display text not null,
+  created_at timestamptz not null default timezone('utc', now()),
+  constraint vehicle_catalog_pkey primary key (year, make, model)
+);
+
+create index if not exists vehicle_catalog_year_idx on public.vehicle_catalog(year);
+create index if not exists vehicle_catalog_make_idx on public.vehicle_catalog(make);
+create index if not exists vehicle_catalog_model_idx on public.vehicle_catalog(model);
+
+create or replace function public.get_vehicle_catalog_years()
+returns table (year smallint)
+language sql
+stable
+as $$
+  select distinct vc.year
+  from public.vehicle_catalog vc
+  order by vc.year desc;
+$$;
+
+create or replace function public.get_vehicle_catalog_makes(p_year smallint)
+returns table (make text, make_display text)
+language sql
+stable
+as $$
+  select distinct vc.make, vc.make_display
+  from public.vehicle_catalog vc
+  where vc.year = p_year
+  order by vc.make_display asc;
+$$;
+
+create or replace function public.get_vehicle_catalog_models(p_year smallint, p_make text)
+returns table (model text, model_display text)
+language sql
+stable
+as $$
+  select distinct vc.model, vc.model_display
+  from public.vehicle_catalog vc
+  where vc.year = p_year
+    and vc.make = p_make
+  order by vc.model_display asc;
+$$;
+
+create or replace function public.get_vehicle_catalog_entry(p_year smallint, p_make text, p_model text)
+returns public.vehicle_catalog
+language sql
+stable
+as $$
+  select vc.*
+  from public.vehicle_catalog vc
+  where vc.year = p_year
+    and vc.make = p_make
+    and vc.model = p_model
+  limit 1;
+$$;
+
 create table if not exists public.service_schedules (
   id uuid primary key default uuid_generate_v4(),
   device_id uuid not null references public.devices(id) on delete cascade,

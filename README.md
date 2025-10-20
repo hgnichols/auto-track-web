@@ -25,6 +25,8 @@ The experience is designed for mobile screens, uses a single-device anonymous se
 2. **Provision Supabase**
    - Create a new Supabase project.
    - Run the SQL in `supabase/schema.sql` inside the Supabase SQL editor.
+   - Generate the vehicle catalog data with `npm run generate:vehicle-catalog` (pass `--start-year` / `--end-year` flags if you want to limit the range).
+   - Seed the catalog locally with `npm run seed:vehicle-catalog` (requires `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in your environment). This script streams the JSON into Supabase so you don't have to paste the large SQL file.
    - (Optional) Enable Row Level Security if you plan to move away from the service role in server actions.
 
 3. **Environment variables**
@@ -49,7 +51,7 @@ The experience is designed for mobile screens, uses a single-device anonymous se
 
 5. **Schedule reminders**
    - Hit `POST /api/reminders/trigger` with the header `Authorization: Bearer $REMINDER_CRON_SECRET`.
-   - Configure a cron job (Vercel Cron, GitHub Actions, etc.) to call the endpoint daily. The handler sends reminder emails via Resend and de-duplicates sends using each schedule’s `last_reminder_sent_at` timestamp.
+   - Configure a cron job (Vercel Cron, GitHub Actions, etc.) to call the endpoint daily. The handler sends reminder emails via Resend and de-duplicates sends using each schedule's `last_reminder_sent_at` timestamp.
 
 ---
 
@@ -62,7 +64,7 @@ The experience is designed for mobile screens, uses a single-device anonymous se
      | ---------------- | ----------------- | ------------- |
      | Oil Change       | 5,000 mi / 6 mo   | 500 mi / 14 d |
      | Tire Rotation    | 7,500 mi / 12 mo  | 500 mi / 21 d |
-     | Brake Inspection | — / 12 mo         | — / 30 d      |
+     | Brake Inspection | n/a / 12 mo       | n/a / 30 d    |
 
 2. **Dashboard** (`/`)
    - Highlights due-soon or overdue services.
@@ -90,6 +92,7 @@ The experience is designed for mobile screens, uses a single-device anonymous se
 
 - The app uses server actions with the Supabase service role to simplify early MVP development. For production, consider moving to authenticated supabase-js clients with Row Level Security.
 - `devices` table binds anonymous users to a single vehicle via an HTTP-only cookie (`autotrack_device_id`).
+- `vehicle_catalog` stores normalized year/make/model combinations sourced from the NHTSA VPIC API via the provided generator script.
 - `service_schedules` drives reminders and timelines; `service_logs` keeps the maintenance history.
 
 ---
@@ -102,6 +105,8 @@ The experience is designed for mobile screens, uses a single-device anonymous se
 | `npm run build` | Create a production build. |
 | `npm run start` | Start the production server. |
 | `npm run lint` | Run ESLint. |
+| `npm run generate:vehicle-catalog` | Fetch the NHTSA VPIC catalog and emit Supabase seed files. |
+| `npm run seed:vehicle-catalog` | Push the generated catalog JSON into Supabase via the service role. |
 | `npm run typecheck` | Static type checking with TypeScript. |
 
 ---

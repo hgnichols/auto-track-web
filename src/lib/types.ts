@@ -13,6 +13,15 @@ export type Vehicle = {
   updated_at: string;
 };
 
+export type VehicleCatalogEntry = {
+  year: number;
+  make: string;
+  make_display: string;
+  model: string;
+  model_display: string;
+  created_at: string;
+};
+
 export type ServiceSchedule = {
   id: string;
   device_id: string;
