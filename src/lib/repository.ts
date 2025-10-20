@@ -1,7 +1,13 @@
 import { addMonths, format } from 'date-fns';
 import { DEFAULT_SERVICE_TEMPLATES } from './constants';
 import { createAdminClient } from './supabase/admin';
-import type { DashboardData, ServiceLog, ServiceSchedule, Vehicle } from './types';
+import type {
+  DashboardData,
+  MaintenanceStatus,
+  ServiceLog,
+  ServiceSchedule,
+  Vehicle
+} from './types';
 
 const DATE_FORMAT = 'yyyy-MM-dd';
 
@@ -10,6 +16,7 @@ type CreateVehiclePayload = {
   make: string;
   model: string;
   vin?: string | null;
+  contact_email?: string | null;
   current_mileage?: number | null;
 };
 
@@ -56,6 +63,10 @@ export async function getVehicleByDevice(deviceId: string) {
 export async function createVehicle(deviceId: string, payload: CreateVehiclePayload) {
   const client = createAdminClient();
   const now = new Date().toISOString();
+  const contactEmail =
+    typeof payload.contact_email === 'string' && payload.contact_email.trim().length > 0
+      ? payload.contact_email.trim().toLowerCase()
+      : null;
   const { data, error } = await client
     .from('vehicles')
     .insert({
@@ -64,6 +75,7 @@ export async function createVehicle(deviceId: string, payload: CreateVehiclePayl
       make: payload.make,
       model: payload.model,
       vin: payload.vin?.trim() || null,
+      contact_email: contactEmail,
       current_mileage: payload.current_mileage ?? null,
       created_at: now,
       updated_at: now
@@ -301,6 +313,8 @@ async function updateScheduleAfterService(
       last_completed_mileage: mileage,
       next_due_date: nextDueDate,
       next_due_mileage: nextDueMileage,
+      last_reminder_sent_at: null,
+      last_reminder_status: null,
       updated_at: now
     })
     .eq('id', schedule.id);
@@ -319,6 +333,41 @@ async function updateVehicleMileage(vehicleId: string, mileage: number) {
       updated_at: new Date().toISOString()
     })
     .eq('id', vehicleId);
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function getVehiclesWithReminderContact() {
+  const client = createAdminClient();
+  const { data, error } = await client
+    .from('vehicles')
+    .select('*')
+    .not('contact_email', 'is', null);
+
+  if (error) {
+    throw error;
+  }
+
+  const vehicles = (data as Vehicle[]) ?? [];
+  return vehicles.filter((vehicle) => !!vehicle.contact_email);
+}
+
+export async function markScheduleReminderSent(
+  scheduleId: string,
+  status: MaintenanceStatus,
+  sentAt: Date
+) {
+  const client = createAdminClient();
+  const { error } = await client
+    .from('service_schedules')
+    .update({
+      last_reminder_sent_at: sentAt.toISOString(),
+      last_reminder_status: status,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', scheduleId);
 
   if (error) {
     throw error;

@@ -136,7 +136,7 @@ These are out of scope for MVP but planned for later releases:
 - [x] Users can create a vehicle profile with basic info  
 - [x] Users can view upcoming and past services in a timeline  
 - [x] Users can add a service with date and mileage  
-- [ ] Users receive a reminder before the next service is due  
+- [x] Users receive a reminder before the next service is due  
 - [x] Users can see their next due service clearly on the dashboard  
 - [x] Core flow works without requiring advanced car knowledge
 

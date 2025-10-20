@@ -1,3 +1,5 @@
+export type MaintenanceStatus = 'ok' | 'due_soon' | 'overdue';
+
 export type Vehicle = {
   id: string;
   device_id: string;
@@ -5,6 +7,7 @@ export type Vehicle = {
   make: string;
   model: string;
   vin: string | null;
+  contact_email: string | null;
   current_mileage: number | null;
   created_at: string;
   updated_at: string;
@@ -24,6 +27,8 @@ export type ServiceSchedule = {
   next_due_mileage: number | null;
   last_completed_date: string | null;
   last_completed_mileage: number | null;
+  last_reminder_sent_at: string | null;
+  last_reminder_status: MaintenanceStatus | null;
   created_at: string;
   updated_at: string;
 };

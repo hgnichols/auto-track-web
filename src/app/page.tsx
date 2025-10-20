@@ -50,14 +50,17 @@ export default async function DashboardPage() {
       : 'Mileage not set yet';
 
   const nextServiceDetailParts: string[] = [];
-  if (nextService?.dueDateLabel) {
-    nextServiceDetailParts.push(`Target ${nextService.dueDateLabel}`);
+  const nextServiceDueDate = nextService?.dueDateLabel;
+  if (nextServiceDueDate) {
+    nextServiceDetailParts.push(`Target ${nextServiceDueDate}`);
   }
-  if (nextService?.milesUntilDue !== null) {
+
+  const nextServiceMiles = nextService?.milesUntilDue;
+  if (nextServiceMiles !== null && nextServiceMiles !== undefined) {
     nextServiceDetailParts.push(
-      nextService.milesUntilDue <= 0
+      nextServiceMiles <= 0
         ? 'Mileage threshold reached'
-        : `${nextService.milesUntilDue.toLocaleString()} miles remaining`
+        : `${nextServiceMiles.toLocaleString()} miles remaining`
     );
   }
 

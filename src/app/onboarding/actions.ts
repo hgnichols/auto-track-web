@@ -22,17 +22,31 @@ export async function submitVehicleAction(formData: FormData) {
   const model = String(modelValue).trim();
   const vinValue = formData.get('vin');
   const mileageValue = formData.get('current_mileage');
+  const emailValue = formData.get('contact_email');
 
   const currentMileage =
     typeof mileageValue === 'string' && mileageValue.trim().length > 0
       ? Number(mileageValue)
       : null;
 
+  const contactEmailRaw =
+    typeof emailValue === 'string' && emailValue.trim().length > 0
+      ? emailValue.trim().toLowerCase()
+      : null;
+
+  if (
+    contactEmailRaw &&
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmailRaw)
+  ) {
+    throw new Error('Please enter a valid email address for reminders.');
+  }
+
   await createVehicle(deviceId, {
     year: Number.isFinite(year) ? year : null,
     make,
     model,
     vin: typeof vinValue === 'string' ? vinValue : null,
+    contact_email: contactEmailRaw,
     current_mileage: Number.isFinite(currentMileage) ? currentMileage : null
   });
 

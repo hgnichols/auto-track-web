@@ -78,6 +78,18 @@ export default async function OnboardingPage() {
                 className={inputClass}
               />
             </div>
+            <div className={formFieldClass}>
+              <label htmlFor="contact_email" className="text-sm font-medium text-slate-600">
+                Reminder email
+              </label>
+              <input
+                id="contact_email"
+                name="contact_email"
+                type="email"
+                placeholder="Optional — name@email.com"
+                className={inputClass}
+              />
+            </div>
           </div>
 
           <div className="flex justify-end">

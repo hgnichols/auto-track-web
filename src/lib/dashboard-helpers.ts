@@ -6,7 +6,7 @@ import {
   isValid,
   parseISO
 } from 'date-fns';
-import type { ServiceLog, ServiceSchedule, Vehicle } from './types';
+import type { MaintenanceStatus, ServiceLog, ServiceSchedule, Vehicle } from './types';
 
 const DISPLAY_DATE_FORMAT = 'MMM d, yyyy';
 
@@ -15,7 +15,7 @@ export type UpcomingService = {
   daysUntilDue: number | null;
   milesUntilDue: number | null;
   dueDateLabel: string | null;
-  status: 'ok' | 'due_soon' | 'overdue';
+  status: MaintenanceStatus;
 };
 
 export type TimelineEntry =
@@ -25,7 +25,7 @@ export type TimelineEntry =
       title: string;
       dateLabel: string | null;
       mileageLabel: string | null;
-      status: 'ok' | 'due_soon' | 'overdue';
+      status: MaintenanceStatus;
       notes?: string;
     }
   | {

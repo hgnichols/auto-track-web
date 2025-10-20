@@ -13,6 +13,7 @@ create table if not exists public.vehicles (
   make text not null,
   model text not null,
   vin text,
+  contact_email text,
   current_mileage integer,
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now()),
@@ -33,6 +34,8 @@ create table if not exists public.service_schedules (
   next_due_mileage integer,
   last_completed_date date,
   last_completed_mileage integer,
+  last_reminder_sent_at timestamptz,
+  last_reminder_status text,
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now())
 );

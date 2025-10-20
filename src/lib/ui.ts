@@ -1,3 +1,5 @@
+import type { MaintenanceStatus } from './types';
+
 const buttonBaseClass =
   'inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition-transform duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2';
 
@@ -34,8 +36,6 @@ export const tertiaryTextClass = 'text-sm text-slate-400';
 
 export const emptyStateClass =
   'rounded-3xl border border-dashed border-slate-200/70 bg-white/70 px-6 py-12 text-center text-slate-500';
-
-export type MaintenanceStatus = 'ok' | 'due_soon' | 'overdue';
 
 export const statusPillClass = (status: MaintenanceStatus) => {
   if (status === 'overdue') {

@@ -33,14 +33,23 @@ The experience is designed for mobile screens, uses a single-device anonymous se
    SUPABASE_URL=your-project-url
    SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+   RESEND_API_KEY=your-resend-api-key
+   REMINDER_FROM_EMAIL=reminders@your-domain.com
+   REMINDER_CRON_SECRET=super-secret-string
+   REMINDER_APP_BASE_URL=http://localhost:3000
+   # Optional: REMINDER_REPEAT_HOURS=24
    ```
-   The app currently uses the service role inside server actions and never exposes it to the client. The public anon key is included for future client-side extensions.
+   The app currently uses the service role inside server actions and never exposes it to the client. The public anon key is included for future client-side extensions. `RESEND_API_KEY` and the reminder settings power outbound maintenance reminder emails.
 
 4. **Run the dev server**
    ```bash
    npm run dev
    ```
    The app will be available at `http://localhost:3000`.
+
+5. **Schedule reminders**
+   - Hit `POST /api/reminders/trigger` with the header `Authorization: Bearer $REMINDER_CRON_SECRET`.
+   - Configure a cron job (Vercel Cron, GitHub Actions, etc.) to call the endpoint daily. The handler sends reminder emails via Resend and de-duplicates sends using each schedule’s `last_reminder_sent_at` timestamp.
 
 ---
 
