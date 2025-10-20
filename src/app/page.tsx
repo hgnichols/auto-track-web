@@ -62,7 +62,7 @@ export default async function DashboardPage() {
   }
 
   const nextServiceMeta = nextService
-    ? nextReminderLabel(nextService) ?? nextServiceDetailParts.join(' • ') || 'Stay on track'
+    ? nextReminderLabel(nextService) ?? (nextServiceDetailParts.join(' • ') || 'Stay on track')
     : 'Add a maintenance schedule to start receiving reminders.';
 
   const nextServiceSecondary = nextService
