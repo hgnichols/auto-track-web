@@ -1,3 +1,5 @@
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
 import { addMonths, format } from 'date-fns';
 import { DEFAULT_SERVICE_TEMPLATES } from './constants';
 import { createAdminClient } from './supabase/admin';
@@ -11,6 +13,11 @@ import type {
 } from './types';
 
 const DATE_FORMAT = 'yyyy-MM-dd';
+const LOCAL_CATALOG_FILE = path.join(process.cwd(), 'supabase', 'data', 'vehicle_catalog.json');
+const LOCAL_CATALOG_EPOCH = '1970-01-01T00:00:00.000Z';
+
+let localCatalogCache: VehicleCatalogEntry[] | null = null;
+let hasAttemptedLocalCatalogLoad = false;
 
 type CreateVehiclePayload = {
   year?: number | null;
@@ -41,52 +48,171 @@ function normalizeCatalogValue(raw: string) {
   return raw.trim().toUpperCase();
 }
 
-export async function getVehicleCatalogYears(): Promise<number[]> {
-  const client = createAdminClient();
-  const { data, error } = await client.rpc('get_vehicle_catalog_years');
-
-  if (error) {
-    throw error;
+async function loadLocalVehicleCatalog(): Promise<VehicleCatalogEntry[]> {
+  if (localCatalogCache) {
+    return localCatalogCache;
   }
 
-  const rows = (data ?? []) as Array<{ year: number }>;
-  return rows
-    .map((row) => row.year)
-    .filter((year) => typeof year === 'number')
-    .map((year) => Number(year));
+  if (hasAttemptedLocalCatalogLoad) {
+    return [];
+  }
+
+  hasAttemptedLocalCatalogLoad = true;
+
+  try {
+    const fileContent = await readFile(LOCAL_CATALOG_FILE, 'utf8');
+    const parsed = JSON.parse(fileContent) as { entries?: Array<Record<string, unknown>> };
+    const entries = Array.isArray(parsed.entries) ? parsed.entries : [];
+
+    localCatalogCache = entries
+      .map((entry) => {
+        const year = Number(entry.year);
+        const make = typeof entry.make === 'string' ? normalizeCatalogValue(entry.make) : '';
+        const makeDisplay = typeof entry.make_display === 'string' ? entry.make_display : '';
+        const model = typeof entry.model === 'string' ? normalizeCatalogValue(entry.model) : '';
+        const modelDisplay =
+          typeof entry.model_display === 'string' ? entry.model_display : '';
+
+        if (!Number.isFinite(year) || !make || !model) {
+          return null;
+        }
+
+        return {
+          year,
+          make,
+          make_display: makeDisplay,
+          model,
+          model_display: modelDisplay,
+          created_at: LOCAL_CATALOG_EPOCH
+        } satisfies VehicleCatalogEntry;
+      })
+      .filter((entry): entry is VehicleCatalogEntry => entry !== null);
+
+    return localCatalogCache;
+  } catch (error) {
+    console.error('Failed to load local vehicle catalog fallback', error);
+    localCatalogCache = [];
+    return localCatalogCache;
+  }
+}
+
+async function fallbackVehicleCatalogYears(): Promise<number[]> {
+  const catalog = await loadLocalVehicleCatalog();
+  const years = new Set<number>();
+  for (const entry of catalog) {
+    years.add(entry.year);
+  }
+  return Array.from(years).sort((a, b) => b - a);
+}
+
+async function fallbackVehicleCatalogMakes(year: number) {
+  const catalog = await loadLocalVehicleCatalog();
+  const makes = new Map<string, { make: string; make_display: string }>();
+  for (const entry of catalog) {
+    if (entry.year === year && !makes.has(entry.make)) {
+      makes.set(entry.make, {
+        make: entry.make,
+        make_display: entry.make_display
+      });
+    }
+  }
+  return Array.from(makes.values()).sort((a, b) => a.make_display.localeCompare(b.make_display));
+}
+
+async function fallbackVehicleCatalogModels(year: number, make: string) {
+  const catalog = await loadLocalVehicleCatalog();
+  const normalizedMake = normalizeCatalogValue(make);
+  const models = new Map<string, { model: string; model_display: string }>();
+  for (const entry of catalog) {
+    if (entry.year === year && entry.make === normalizedMake && !models.has(entry.model)) {
+      models.set(entry.model, {
+        model: entry.model,
+        model_display: entry.model_display
+      });
+    }
+  }
+  return Array.from(models.values()).sort((a, b) => a.model_display.localeCompare(b.model_display));
+}
+
+async function fallbackVehicleCatalogEntry(
+  year: number,
+  make: string,
+  model: string
+): Promise<VehicleCatalogEntry | null> {
+  const catalog = await loadLocalVehicleCatalog();
+  const normalizedMake = normalizeCatalogValue(make);
+  const normalizedModel = normalizeCatalogValue(model);
+  return (
+    catalog.find(
+      (entry) => entry.year === year && entry.make === normalizedMake && entry.model === normalizedModel
+    ) ?? null
+  );
+}
+
+export async function getVehicleCatalogYears(): Promise<number[]> {
+  const client = createAdminClient();
+
+  try {
+    const { data, error } = await client.rpc('get_vehicle_catalog_years');
+
+    if (error) {
+      throw error;
+    }
+
+    const rows = (data ?? []) as Array<{ year: number }>;
+    return rows
+      .map((row) => row.year)
+      .filter((year) => typeof year === 'number')
+      .map((year) => Number(year));
+  } catch (error) {
+    console.warn('Falling back to local vehicle catalog for years', error);
+    return fallbackVehicleCatalogYears();
+  }
 }
 
 export async function getVehicleCatalogMakes(year: number) {
   const client = createAdminClient();
-  const { data, error } = await client.rpc('get_vehicle_catalog_makes', { p_year: year });
 
-  if (error) {
-    throw error;
+  try {
+    const { data, error } = await client.rpc('get_vehicle_catalog_makes', { p_year: year });
+
+    if (error) {
+      throw error;
+    }
+
+    const rows = (data ?? []) as Array<{ make: string; make_display: string }>;
+    return rows.map((row) => ({
+      make: row.make,
+      make_display: row.make_display
+    }));
+  } catch (error) {
+    console.warn(`Falling back to local vehicle catalog for makes (${year})`, error);
+    return fallbackVehicleCatalogMakes(year);
   }
-
-  const rows = (data ?? []) as Array<{ make: string; make_display: string }>;
-  return rows.map((row) => ({
-    make: row.make,
-    make_display: row.make_display
-  }));
 }
 
 export async function getVehicleCatalogModels(year: number, make: string) {
   const client = createAdminClient();
-  const { data, error } = await client.rpc('get_vehicle_catalog_models', {
-    p_year: year,
-    p_make: normalizeCatalogValue(make)
-  });
 
-  if (error) {
-    throw error;
+  try {
+    const { data, error } = await client.rpc('get_vehicle_catalog_models', {
+      p_year: year,
+      p_make: normalizeCatalogValue(make)
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    const rows = (data ?? []) as Array<{ model: string; model_display: string }>;
+    return rows.map((row) => ({
+      model: row.model,
+      model_display: row.model_display
+    }));
+  } catch (error) {
+    console.warn(`Falling back to local vehicle catalog for models (${year} ${make})`, error);
+    return fallbackVehicleCatalogModels(year, make);
   }
-
-  const rows = (data ?? []) as Array<{ model: string; model_display: string }>;
-  return rows.map((row) => ({
-    model: row.model,
-    model_display: row.model_display
-  }));
 }
 
 export async function getVehicleCatalogEntry(
@@ -95,26 +221,35 @@ export async function getVehicleCatalogEntry(
   model: string
 ): Promise<VehicleCatalogEntry | null> {
   const client = createAdminClient();
-  const { data, error } = await client.rpc('get_vehicle_catalog_entry', {
-    p_year: year,
-    p_make: normalizeCatalogValue(make),
-    p_model: normalizeCatalogValue(model)
-  });
 
-  if (error) {
-    throw error;
+  try {
+    const { data, error } = await client.rpc('get_vehicle_catalog_entry', {
+      p_year: year,
+      p_make: normalizeCatalogValue(make),
+      p_model: normalizeCatalogValue(model)
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data) {
+      return null;
+    }
+
+    if (Array.isArray(data)) {
+      const [entry] = data as VehicleCatalogEntry[];
+      return entry ?? null;
+    }
+
+    return data as VehicleCatalogEntry;
+  } catch (error) {
+    console.warn(
+      `Falling back to local vehicle catalog for entry (${year} ${make} ${model})`,
+      error
+    );
+    return fallbackVehicleCatalogEntry(year, make, model);
   }
-
-  if (!data) {
-    return null;
-  }
-
-  if (Array.isArray(data)) {
-    const [entry] = data as VehicleCatalogEntry[];
-    return entry ?? null;
-  }
-
-  return data as VehicleCatalogEntry;
 }
 
 export async function ensureDevice(deviceId: string) {

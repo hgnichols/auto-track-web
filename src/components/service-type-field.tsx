@@ -1,8 +1,9 @@
 'use client';
 
-import { type ChangeEvent, useState } from 'react';
+import { useMemo, useState } from 'react';
 import clsx from 'clsx';
 import type { ServiceSchedule } from '../lib/types';
+import { TypeaheadSelect, type Option } from './typeahead-select';
 import { formFieldClass, inputClass, mutedTextClass } from '../lib/ui';
 
 type Props = {
@@ -16,9 +17,21 @@ export default function ServiceTypeField({ schedules }: Props) {
   const defaultMode: Mode = defaultSelection === 'custom' ? 'custom' : 'default';
   const [mode, setMode] = useState<Mode>(defaultMode);
   const [selection, setSelection] = useState(defaultSelection);
+  const options = useMemo<Option[]>(() => {
+    const scheduleOptions = schedules.map((schedule) => ({
+      value: schedule.id,
+      label: schedule.service_name
+    }));
+    return [
+      ...scheduleOptions,
+      {
+        value: 'custom',
+        label: 'Custom service'
+      }
+    ];
+  }, [schedules]);
 
-  const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    const value = event.target.value;
+  const handleChange = (value: string) => {
     setSelection(value);
     setMode(value === 'custom' ? 'custom' : 'default');
   };
@@ -28,24 +41,16 @@ export default function ServiceTypeField({ schedules }: Props) {
       <label htmlFor="schedule_id" className="text-sm font-medium text-slate-600">
         Service
       </label>
-      <select
+      <TypeaheadSelect
         id="schedule_id"
         name="schedule_id"
-        required
         value={selection}
+        options={options}
         onChange={handleChange}
-        className={inputClass}
-      >
-        <option value="" disabled>
-          Select service type
-        </option>
-        {schedules.map((schedule) => (
-          <option key={schedule.id} value={schedule.id}>
-            {schedule.service_name}
-          </option>
-        ))}
-        <option value="custom">Custom service</option>
-      </select>
+        placeholder="Search service type"
+        emptyText="No services matched your search"
+        required
+      />
 
       <div className={clsx('grid gap-2', mode !== 'custom' && 'hidden')}>
         <input

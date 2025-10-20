@@ -3,12 +3,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { submitVehicleAction } from './actions';
+import { TypeaheadSelect, type Option } from '../../components/typeahead-select';
 import { formFieldClass, inputClass, primaryButtonClass } from '../../lib/ui';
-
-type Option = {
-  value: string;
-  label: string;
-};
 
 type VehicleFormProps = {
   years: number[];
@@ -27,6 +23,10 @@ export function VehicleForm({ years }: VehicleFormProps) {
   const sortedYears = useMemo(
     () => [...years].sort((a, b) => b - a),
     [years]
+  );
+  const yearOptions = useMemo<Option[]>(
+    () => sortedYears.map((year) => ({ value: String(year), label: String(year) })),
+    [sortedYears]
   );
   const [selectedYear, setSelectedYear] = useState(() =>
     sortedYears.length > 0 ? String(sortedYears[0]) : ''
@@ -162,67 +162,59 @@ export function VehicleForm({ years }: VehicleFormProps) {
           <label htmlFor="year" className="text-sm font-medium text-slate-600">
             Year *
           </label>
-          <select
+          <TypeaheadSelect
             id="year"
             name="year"
-            className={inputClass}
             value={selectedYear}
-            onChange={(event) => setSelectedYear(event.target.value)}
-          >
-            {sortedYears.map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
-            ))}
-          </select>
+            options={yearOptions}
+            onChange={(nextValue) => setSelectedYear(nextValue)}
+            disabled={yearOptions.length === 0}
+            placeholder="Search year"
+          />
         </div>
         <div className={formFieldClass}>
           <label htmlFor="make" className="text-sm font-medium text-slate-600">
             Make *
           </label>
-          <select
+          <TypeaheadSelect
             id="make"
             name="make"
-            className={inputClass}
             value={selectedMake}
-            onChange={(event) => setSelectedMake(event.target.value)}
-            disabled={isLoadingMakes || makeOptions.length === 0}
-          >
-            <option value="" disabled>
-              {isLoadingMakes ? 'Loading makes...' : 'Select a make'}
-            </option>
-            {makeOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+            options={makeOptions}
+            onChange={(nextValue) => setSelectedMake(nextValue)}
+            disabled={!selectedYear || isLoadingMakes || makeOptions.length === 0}
+            isLoading={isLoadingMakes}
+            placeholder={
+              selectedYear
+                ? isLoadingMakes
+                  ? 'Loading makes…'
+                  : 'Search make'
+                : 'Choose a year first'
+            }
+            emptyText="No makes matched your search"
+          />
         </div>
         <div className={formFieldClass}>
           <label htmlFor="model" className="text-sm font-medium text-slate-600">
             Model *
           </label>
-          <select
+          <TypeaheadSelect
             id="model"
             name="model"
-            className={inputClass}
             value={selectedModel}
-            onChange={(event) => setSelectedModel(event.target.value)}
-            disabled={isLoadingModels || modelOptions.length === 0}
-          >
-            <option value="" disabled>
-              {selectedMake
+            options={modelOptions}
+            onChange={(nextValue) => setSelectedModel(nextValue)}
+            disabled={!selectedMake || isLoadingModels || modelOptions.length === 0}
+            isLoading={isLoadingModels}
+            placeholder={
+              selectedMake
                 ? isLoadingModels
-                  ? 'Loading models...'
-                  : 'Select a model'
-                : 'Choose a make first'}
-            </option>
-            {modelOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+                  ? 'Loading models…'
+                  : 'Search model'
+                : 'Choose a make first'
+            }
+            emptyText="No models matched your search"
+          />
         </div>
         <div className={formFieldClass}>
           <label htmlFor="vin" className="text-sm font-medium text-slate-600">
