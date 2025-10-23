@@ -97,7 +97,10 @@ export default async function NewServicePage() {
             <Link href="/" className={ghostButtonClass}>
               Cancel
             </Link>
-            <button type="submit" className={primaryButtonClass}>
+            <button
+              type="submit"
+              className={`${primaryButtonClass} rounded-2xl px-5 py-2.5 shadow-[0_10px_24px_rgba(10,132,255,0.25)] hover:shadow-[0_14px_30px_rgba(10,132,255,0.25)]`}
+            >
               Save log
             </button>
           </div>
