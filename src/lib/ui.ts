@@ -6,6 +6,12 @@ const buttonBaseClass =
 export const primaryButtonClass =
   `${buttonBaseClass} border border-transparent bg-gradient-to-br from-blue-600 to-blue-500 text-white shadow-[0_14px_30px_rgba(10,132,255,0.35)] hover:-translate-y-px hover:shadow-[0_18px_38px_rgba(10,132,255,0.35)] focus-visible:outline-blue-400`;
 
+const compactButtonBaseClass =
+  'inline-flex items-center justify-center rounded-xl px-3 py-1.5 text-sm font-semibold leading-tight transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 md:py-1 disabled:cursor-not-allowed disabled:opacity-60';
+
+export const primaryButtonCompactClass =
+  `${compactButtonBaseClass} border border-transparent bg-blue-600 text-white shadow-sm hover:bg-blue-500 focus-visible:outline-blue-400`;
+
 export const ghostButtonClass =
   `${buttonBaseClass} border border-slate-200/70 bg-white/70 text-slate-900 shadow-none hover:-translate-y-px hover:bg-white focus-visible:outline-blue-400`;
 

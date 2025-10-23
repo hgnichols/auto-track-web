@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { submitVehicleAction } from './actions';
 import { TypeaheadSelect, type Option } from '../../components/typeahead-select';
-import { formFieldClass, inputClass, primaryButtonClass } from '../../lib/ui';
+import { formFieldClass, inputClass, primaryButtonCompactClass } from '../../lib/ui';
 
 type VehicleFormProps = {
   years: number[];
@@ -13,7 +13,7 @@ type VehicleFormProps = {
 function SubmitButton({ disabled }: { disabled: boolean }) {
   const { pending } = useFormStatus();
   return (
-    <button type="submit" className={primaryButtonClass} disabled={disabled || pending}>
+    <button type="submit" className={primaryButtonCompactClass} disabled={disabled || pending}>
       {pending ? 'Saving...' : 'Save vehicle'}
     </button>
   );

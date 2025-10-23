@@ -9,7 +9,9 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "generate:vehicle-catalog": "node scripts/generate-vehicle-catalog.mjs",
+    "generate:maintenance-catalog": "node scripts/generate-maintenance-catalog.mjs",
     "seed:vehicle-catalog": "node scripts/seed-vehicle-catalog.mjs",
+    "seed:maintenance-catalog": "node scripts/seed-maintenance-catalog.mjs",
     "export:vehicle-catalog-csv": "node scripts/export-vehicle-catalog-csv.mjs"
   },
   "dependencies": {

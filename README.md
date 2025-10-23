@@ -8,6 +8,7 @@ AutoTrack helps everyday drivers stay ahead of maintenance with a single, focuse
 - **Dashboard:** Shows the next service due, highlights reminders, and surfaces the most recent maintenance log.
 - **Vehicle Profile:** Capture year, make, model, VIN (optional), and mileage for one vehicle.
 - **Maintenance Timeline:** Combined view of upcoming (due-soon / overdue) services and completed work.
+- **Manufacturer Schedules:** Pull OEM-recommended maintenance intervals per year/make/model when available, falling back to sensible defaults.
 - **Service Logging:** Log routine maintenance with mileage, cost, and notes; schedules update automatically.
 - **Smart Reminders:** Default intervals for oil change, tire rotation, and brake inspection drive the dashboard alerts.
 
@@ -27,6 +28,7 @@ The experience is designed for mobile screens, uses a single-device anonymous se
    - Run the SQL in `supabase/schema.sql` inside the Supabase SQL editor.
    - Generate the vehicle catalog data with `npm run generate:vehicle-catalog` (pass `--start-year` / `--end-year` flags if you want to limit the range).
    - Seed the catalog locally with `npm run seed:vehicle-catalog` (requires `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in your environment). This script streams the JSON into Supabase so you don't have to paste the large SQL file.
+   - (Optional but recommended) Generate OEM maintenance schedules with `npm run generate:maintenance-catalog` after configuring the CarMD credentials described below. Seed them with `npm run seed:maintenance-catalog` to let onboarding pull real manufacturer guidance.
    - (Optional) Enable Row Level Security if you plan to move away from the service role in server actions.
 
 3. **Environment variables**
@@ -40,8 +42,12 @@ The experience is designed for mobile screens, uses a single-device anonymous se
    REMINDER_CRON_SECRET=super-secret-string
    REMINDER_APP_BASE_URL=http://localhost:3000
    # Optional: REMINDER_REPEAT_HOURS=24
+   CARMD_API_KEY=your-carmd-api-key
+   CARMD_API_SECRET=your-carmd-api-secret
+   CARMD_PARTNER_TOKEN=your-carmd-partner-token
    ```
    The app currently uses the service role inside server actions and never exposes it to the client. The public anon key is included for future client-side extensions. `RESEND_API_KEY` and the reminder settings power outbound maintenance reminder emails.
+   CarMD credentials unlock the OEM maintenance ingestion script (`generate:maintenance-catalog`). Reach out to CarMD for API access and copy the Partner Token alongside your key + secret.
 
 4. **Run the dev server**
    ```bash
@@ -59,12 +65,20 @@ The experience is designed for mobile screens, uses a single-device anonymous se
 
 1. **Onboarding** (`/onboarding`)
    - Generates a per-device cookie to identify the session.
-   - Captures vehicle details and seeds default service schedules:
-     | Service          | Interval          | Reminder lead |
-     | ---------------- | ----------------- | ------------- |
-     | Oil Change       | 5,000 mi / 6 mo   | 500 mi / 14 d |
-     | Tire Rotation    | 7,500 mi / 12 mo  | 500 mi / 21 d |
-     | Brake Inspection | n/a / 12 mo       | n/a / 30 d    |
+   - Captures vehicle details and seeds service schedules sourced from the manufacturer catalog when available. If no OEM schedule exists, one universal baseline is applied:
+     | Service                          | Interval                | Reminder lead        |
+     | -------------------------------- | ----------------------- | -------------------- |
+     | Oil Change                       | 5,000 mi / 6 mo         | 500 mi / 14 d        |
+     | Tire Rotation                    | 6,000 mi / 6 mo         | 500 mi / 14 d        |
+     | Brake Inspection                 | 12 mo                   | 30 d                 |
+     | Replace Engine Air Filter        | 15,000 mi / 24 mo       | 1,000 mi / 30 d      |
+     | Replace Cabin Air Filter         | 15,000 mi / 12 mo       | 1,000 mi / 21 d      |
+     | Brake Fluid Flush                | 24 mo                   | 21 d                 |
+     | Coolant Flush & Replace          | 60,000 mi / 60 mo       | 1,000 mi / 45 d      |
+     | Transmission Fluid Service       | 60,000 mi / 60 mo       | 1,000 mi / 45 d      |
+     | Replace Spark Plugs              | 100,000 mi / 72 mo      | 5,000 mi / 45 d      |
+     | Battery & Charging System Check  | 12 mo                   | 14 d                 |
+     | Replace Wiper Blades             | 12 mo                   | 14 d                 |
 
 2. **Dashboard** (`/`)
    - Highlights due-soon or overdue services.
@@ -106,7 +120,9 @@ The experience is designed for mobile screens, uses a single-device anonymous se
 | `npm run start` | Start the production server. |
 | `npm run lint` | Run ESLint. |
 | `npm run generate:vehicle-catalog` | Fetch the NHTSA VPIC catalog and emit Supabase seed files. |
+| `npm run generate:maintenance-catalog` | Fetch OEM schedules via CarMD and emit Supabase seed files. |
 | `npm run seed:vehicle-catalog` | Push the generated catalog JSON into Supabase via the service role. |
+| `npm run seed:maintenance-catalog` | Push the generated maintenance catalog JSON into Supabase via the service role. |
 | `npm run typecheck` | Static type checking with TypeScript. |
 
 ---

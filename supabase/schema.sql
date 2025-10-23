@@ -34,6 +34,30 @@ create index if not exists vehicle_catalog_year_idx on public.vehicle_catalog(ye
 create index if not exists vehicle_catalog_make_idx on public.vehicle_catalog(make);
 create index if not exists vehicle_catalog_model_idx on public.vehicle_catalog(model);
 
+create table if not exists public.maintenance_catalog (
+  year smallint not null,
+  make text not null,
+  make_display text not null,
+  model text not null,
+  model_display text not null,
+  service_code text not null,
+  service_name text not null,
+  category text,
+  description text,
+  interval_months integer,
+  interval_miles integer,
+  first_due_mileage integer,
+  severity text,
+  source text,
+  source_url text,
+  created_at timestamptz not null default timezone('utc', now()),
+  constraint maintenance_catalog_pkey primary key (year, make, model, service_code)
+);
+
+create index if not exists maintenance_catalog_year_idx on public.maintenance_catalog(year);
+create index if not exists maintenance_catalog_make_idx on public.maintenance_catalog(make);
+create index if not exists maintenance_catalog_model_idx on public.maintenance_catalog(model);
+
 create or replace function public.get_vehicle_catalog_years()
 returns table (year smallint)
 language sql
@@ -78,6 +102,54 @@ as $$
     and vc.make = p_make
     and vc.model = p_model
   limit 1;
+$$;
+
+create or replace function public.get_maintenance_schedule(
+  p_year smallint,
+  p_make text,
+  p_model text
+)
+returns table (
+  year smallint,
+  make text,
+  make_display text,
+  model text,
+  model_display text,
+  service_code text,
+  service_name text,
+  category text,
+  description text,
+  interval_months integer,
+  interval_miles integer,
+  first_due_mileage integer,
+  severity text,
+  source text,
+  source_url text
+)
+language sql
+stable
+as $$
+  select
+    mc.year,
+    mc.make,
+    mc.make_display,
+    mc.model,
+    mc.model_display,
+    mc.service_code,
+    mc.service_name,
+    mc.category,
+    mc.description,
+    mc.interval_months,
+    mc.interval_miles,
+    mc.first_due_mileage,
+    mc.severity,
+    mc.source,
+    mc.source_url
+  from public.maintenance_catalog mc
+  where mc.year = p_year
+    and mc.make = upper(p_make)
+    and mc.model = upper(p_model)
+  order by mc.first_due_mileage nulls first, mc.service_name asc;
 $$;
 
 create table if not exists public.service_schedules (

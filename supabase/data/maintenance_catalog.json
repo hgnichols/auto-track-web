@@ -1,0 +1,58 @@
+{
+  "generatedAt": "2025-10-22T00:00:00.000Z",
+  "source": "Sample data for development",
+  "count": 3,
+  "entries": [
+    {
+      "year": 2020,
+      "make": "TOYOTA",
+      "make_display": "Toyota",
+      "model": "CAMRY",
+      "model_display": "Camry",
+      "service_code": "replace-engine-oil-filter",
+      "service_name": "Replace engine oil and filter",
+      "category": "Maintenance",
+      "description": "Drain engine oil and replace oil filter with OEM specification components.",
+      "interval_months": 6,
+      "interval_miles": 5000,
+      "first_due_mileage": 5000,
+      "severity": "normal",
+      "source": "CarMD Maintlist API",
+      "source_url": "https://api.carmd.com/v3.0/maintlist"
+    },
+    {
+      "year": 2020,
+      "make": "TOYOTA",
+      "make_display": "Toyota",
+      "model": "CAMRY",
+      "model_display": "Camry",
+      "service_code": "rotate-tires",
+      "service_name": "Rotate tires",
+      "category": "Maintenance",
+      "description": "Perform tire rotation in accordance with manufacturer lug torque specifications.",
+      "interval_months": 6,
+      "interval_miles": 5000,
+      "first_due_mileage": 5000,
+      "severity": "normal",
+      "source": "CarMD Maintlist API",
+      "source_url": "https://api.carmd.com/v3.0/maintlist"
+    },
+    {
+      "year": 2020,
+      "make": "TOYOTA",
+      "make_display": "Toyota",
+      "model": "CAMRY",
+      "model_display": "Camry",
+      "service_code": "replace-cabin-air-filter",
+      "service_name": "Replace cabin air filter",
+      "category": "Maintenance",
+      "description": "Replace cabin air filter element; inspect HVAC intake for debris.",
+      "interval_months": 12,
+      "interval_miles": 15000,
+      "first_due_mileage": 15000,
+      "severity": "normal",
+      "source": "CarMD Maintlist API",
+      "source_url": "https://api.carmd.com/v3.0/maintlist"
+    }
+  ]
+}

@@ -22,6 +22,25 @@ export type VehicleCatalogEntry = {
   created_at: string;
 };
 
+export type MaintenanceCatalogEntry = {
+  year: number;
+  make: string;
+  make_display: string;
+  model: string;
+  model_display: string;
+  service_code: string;
+  service_name: string;
+  category: string | null;
+  description: string | null;
+  interval_months: number | null;
+  interval_miles: number | null;
+  first_due_mileage: number | null;
+  severity: string | null;
+  source: string | null;
+  source_url: string | null;
+  created_at: string;
+};
+
 export type ServiceSchedule = {
   id: string;
   device_id: string;
