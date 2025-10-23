@@ -28,9 +28,7 @@ export function VehicleForm({ years }: VehicleFormProps) {
     () => sortedYears.map((year) => ({ value: String(year), label: String(year) })),
     [sortedYears]
   );
-  const [selectedYear, setSelectedYear] = useState(() =>
-    sortedYears.length > 0 ? String(sortedYears[0]) : ''
-  );
+  const [selectedYear, setSelectedYear] = useState('');
   const [makeOptions, setMakeOptions] = useState<Option[]>([]);
   const [modelOptions, setModelOptions] = useState<Option[]>([]);
   const [selectedMake, setSelectedMake] = useState('');
@@ -41,8 +39,7 @@ export function VehicleForm({ years }: VehicleFormProps) {
 
   useEffect(() => {
     if (selectedYear && !sortedYears.map((year) => String(year)).includes(selectedYear)) {
-      const fallback = sortedYears.length > 0 ? String(sortedYears[0]) : '';
-      setSelectedYear(fallback);
+      setSelectedYear('');
     }
   }, [sortedYears, selectedYear]);
 
