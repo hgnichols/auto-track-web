@@ -1,17 +1,19 @@
 export const runtime = 'nodejs';
 
-import { differenceInHours, isValid, parseISO } from 'date-fns';
+import { differenceInCalendarDays, differenceInHours, isValid, parseISO } from 'date-fns';
 import { NextRequest, NextResponse } from 'next/server';
 import { getUpcomingServices } from '../../../../lib/dashboard-helpers';
-import { sendReminderEmail } from '../../../../lib/reminder-mailer';
+import { sendMileageReminderEmail, sendReminderEmail } from '../../../../lib/reminder-mailer';
 import {
   getSchedules,
   getVehiclesWithReminderContact,
+  markMileageReminderSent,
   markScheduleReminderSent
 } from '../../../../lib/repository';
 import type { MaintenanceStatus, ServiceSchedule, Vehicle } from '../../../../lib/types';
 
 const DEFAULT_REPEAT_HOURS = 24;
+const DEFAULT_MILEAGE_REMINDER_DAYS = 30;
 
 function shouldSendReminder(
   schedule: ServiceSchedule,
@@ -48,6 +50,46 @@ function getRepeatWindowHours() {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_REPEAT_HOURS;
 }
 
+function getMileageReminderWindowDays() {
+  const raw = process.env.MILEAGE_REMINDER_DAYS;
+
+  if (!raw) {
+    return DEFAULT_MILEAGE_REMINDER_DAYS;
+  }
+
+  const parsed = Number.parseInt(raw, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_MILEAGE_REMINDER_DAYS;
+}
+
+function evaluateMileageReminder(
+  vehicle: Vehicle,
+  thresholdDays: number,
+  repeatHours: number,
+  now: Date
+): { shouldSend: boolean; reason?: string } {
+  const baselineIso = vehicle.last_mileage_confirmed_at ?? vehicle.created_at;
+  const baseline = parseISO(baselineIso);
+
+  if (!isValid(baseline)) {
+    return { shouldSend: false, reason: 'invalid_baseline' };
+  }
+
+  const daysSinceBaseline = differenceInCalendarDays(now, baseline);
+  if (daysSinceBaseline < thresholdDays) {
+    return { shouldSend: false, reason: 'within_threshold' };
+  }
+
+  const lastReminderIso = vehicle.last_mileage_reminder_at;
+  if (lastReminderIso) {
+    const lastReminder = parseISO(lastReminderIso);
+    if (isValid(lastReminder) && differenceInHours(now, lastReminder) < repeatHours) {
+      return { shouldSend: false, reason: 'recently_sent' };
+    }
+  }
+
+  return { shouldSend: true };
+}
+
 export async function POST(request: NextRequest) {
   const secret = process.env.REMINDER_CRON_SECRET;
 
@@ -80,12 +122,16 @@ export async function POST(request: NextRequest) {
 
   const appBaseUrl = process.env.REMINDER_APP_BASE_URL ?? 'http://localhost:3000';
   const repeatHours = getRepeatWindowHours();
+  const mileageReminderDays = getMileageReminderWindowDays();
   const vehicles = await getVehiclesWithReminderContact();
   const now = new Date();
 
   const sent: Array<{ scheduleId: string; email: string; status: MaintenanceStatus }> = [];
   const skipped: Array<{ scheduleId: string; reason: string }> = [];
   const errors: Array<{ scheduleId: string; error: string }> = [];
+  const mileageSent: Array<{ vehicleId: string; email: string }> = [];
+  const mileageSkipped: Array<{ vehicleId: string; reason: string }> = [];
+  const mileageErrors: Array<{ vehicleId: string; error: string }> = [];
 
   for (const vehicle of vehicles) {
     const recipient = vehicle.contact_email;
@@ -131,6 +177,34 @@ export async function POST(request: NextRequest) {
         });
       }
     }
+
+    const mileageDecision = evaluateMileageReminder(vehicle, mileageReminderDays, repeatHours, now);
+
+    if (mileageDecision.shouldSend) {
+      try {
+        await sendMileageReminderEmail({
+          sender,
+          to: recipient,
+          vehicle,
+          appBaseUrl
+        });
+        await markMileageReminderSent(vehicle.id, now);
+        mileageSent.push({
+          vehicleId: vehicle.id,
+          email: recipient
+        });
+      } catch (error) {
+        mileageErrors.push({
+          vehicleId: vehicle.id,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
+    } else {
+      mileageSkipped.push({
+        vehicleId: vehicle.id,
+        reason: mileageDecision.reason ?? 'not_required'
+      });
+    }
   }
 
   return NextResponse.json({
@@ -140,6 +214,12 @@ export async function POST(request: NextRequest) {
     errorCount: errors.length,
     sent,
     skipped,
-    errors
+    errors,
+    mileageSentCount: mileageSent.length,
+    mileageSkippedCount: mileageSkipped.length,
+    mileageErrorCount: mileageErrors.length,
+    mileageSent,
+    mileageSkipped,
+    mileageErrors
   });
 }

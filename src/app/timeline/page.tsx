@@ -46,17 +46,37 @@ export default async function TimelinePage() {
                   : entry.status === 'due_soon'
                   ? 'Due soon'
                   : 'On track';
-              const accentClass =
+              const statusDecorators =
                 entry.status === 'overdue'
-                  ? 'border-red-200/70 bg-red-50/80'
+                  ? {
+                      container: 'border-red-200/70 bg-red-50/80',
+                      marker: 'bg-red-500',
+                      title: 'text-red-900'
+                    }
                   : entry.status === 'due_soon'
-                  ? 'border-amber-200/70 bg-amber-50/80'
-                  : 'border-blue-200/70 bg-blue-50/80';
+                  ? {
+                      container: 'border-amber-200/70 bg-amber-50/80',
+                      marker: 'bg-amber-400',
+                      title: 'text-amber-900'
+                    }
+                  : {
+                      container: 'border-blue-200/70 bg-blue-50/80',
+                      marker: 'bg-blue-500',
+                      title: 'text-slate-900'
+                    };
 
               return (
-                <article key={entry.id} className={`${timelineItemClass} ${accentClass}`}>
+                <article key={entry.id} className={`${timelineItemClass} ${statusDecorators.container}`}>
                   <div className="flex items-center justify-between gap-3">
-                    <h2 className="text-lg font-semibold tracking-tight text-slate-900">{entry.title}</h2>
+                    <div className="flex items-center gap-2">
+                      <span
+                        aria-hidden="true"
+                        className={`inline-flex h-2.5 w-2.5 shrink-0 rounded-full ${statusDecorators.marker}`}
+                      />
+                      <h2 className={`text-lg font-semibold tracking-tight ${statusDecorators.title}`}>
+                        {entry.title}
+                      </h2>
+                    </div>
                     <span className={statusPillClass(entry.status)}>{statusLabel}</span>
                   </div>
                   <p className={mutedTextClass}>

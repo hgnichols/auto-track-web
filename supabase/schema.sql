@@ -15,6 +15,8 @@ create table if not exists public.vehicles (
   vin text,
   contact_email text,
   current_mileage integer,
+  last_mileage_confirmed_at timestamptz,
+  last_mileage_reminder_at timestamptz,
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now()),
   constraint vehicles_unique_device unique (device_id)

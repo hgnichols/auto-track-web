@@ -281,6 +281,10 @@ export async function createVehicle(deviceId: string, payload: CreateVehiclePayl
     payload.make,
     payload.model
   );
+  const initialMileage =
+    typeof payload.current_mileage === 'number' && Number.isFinite(payload.current_mileage)
+      ? payload.current_mileage
+      : null;
   const contactEmail =
     typeof payload.contact_email === 'string' && payload.contact_email.trim().length > 0
       ? payload.contact_email.trim().toLowerCase()
@@ -294,7 +298,9 @@ export async function createVehicle(deviceId: string, payload: CreateVehiclePayl
       model: payload.model,
       vin: payload.vin?.trim() || null,
       contact_email: contactEmail,
-      current_mileage: payload.current_mileage ?? null,
+      current_mileage: initialMileage,
+      last_mileage_confirmed_at: initialMileage !== null ? now : null,
+      last_mileage_reminder_at: null,
       created_at: now,
       updated_at: now
     })
@@ -308,7 +314,7 @@ export async function createVehicle(deviceId: string, payload: CreateVehiclePayl
   await createSchedulesForVehicle(
     deviceId,
     data.id,
-    payload.current_mileage ?? null,
+    initialMileage,
     now,
     scheduleTemplates
   );
@@ -603,13 +609,16 @@ async function updateScheduleAfterService(
   }
 }
 
-async function updateVehicleMileage(vehicleId: string, mileage: number) {
+export async function updateVehicleMileage(vehicleId: string, mileage: number) {
   const client = createAdminClient();
+  const now = new Date().toISOString();
   const { error } = await client
     .from('vehicles')
     .update({
       current_mileage: mileage,
-      updated_at: new Date().toISOString()
+      last_mileage_confirmed_at: now,
+      last_mileage_reminder_at: null,
+      updated_at: now
     })
     .eq('id', vehicleId);
 
@@ -647,6 +656,20 @@ export async function markScheduleReminderSent(
       updated_at: new Date().toISOString()
     })
     .eq('id', scheduleId);
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function markMileageReminderSent(vehicleId: string, sentAt: Date) {
+  const client = createAdminClient();
+  const { error } = await client
+    .from('vehicles')
+    .update({
+      last_mileage_reminder_at: sentAt.toISOString()
+    })
+    .eq('id', vehicleId);
 
   if (error) {
     throw error;

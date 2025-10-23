@@ -10,6 +10,7 @@ AutoTrack helps everyday drivers stay ahead of maintenance with a single, focuse
 - **Maintenance Timeline:** Combined view of upcoming (due-soon / overdue) services and completed work.
 - **Manufacturer Schedules:** Pull OEM-recommended maintenance intervals per year/make/model when available, falling back to sensible defaults.
 - **Service Logging:** Log routine maintenance with mileage, cost, and notes; schedules update automatically.
+- **Odometer Updates:** Adjust your current mileage whenever you like; reminders prompt you if the reading gets stale.
 - **Smart Reminders:** Default intervals for oil change, tire rotation, and brake inspection drive the dashboard alerts.
 
 The experience is designed for mobile screens, uses a single-device anonymous session (no sign-in), and keeps the navigation focused on three screens: Dashboard, Timeline, and Add Service.
@@ -42,6 +43,7 @@ The experience is designed for mobile screens, uses a single-device anonymous se
    REMINDER_CRON_SECRET=super-secret-string
    REMINDER_APP_BASE_URL=http://localhost:3000
    # Optional: REMINDER_REPEAT_HOURS=24
+   # Optional: MILEAGE_REMINDER_DAYS=30
    CARMD_API_KEY=your-carmd-api-key
    CARMD_API_SECRET=your-carmd-api-secret
    CARMD_PARTNER_TOKEN=your-carmd-partner-token
@@ -57,7 +59,7 @@ The experience is designed for mobile screens, uses a single-device anonymous se
 
 5. **Schedule reminders**
    - Hit `POST /api/reminders/trigger` with the header `Authorization: Bearer $REMINDER_CRON_SECRET`.
-   - Configure a cron job (Vercel Cron, GitHub Actions, etc.) to call the endpoint daily. The handler sends reminder emails via Resend and de-duplicates sends using each schedule's `last_reminder_sent_at` timestamp.
+   - Configure a cron job (Vercel Cron, GitHub Actions, etc.) to call the endpoint daily. The handler sends maintenance reminders and mileage update nudges via Resend, de-duplicating sends with the last sent timestamp on each record.
 
 ---
 

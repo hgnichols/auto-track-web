@@ -9,6 +9,8 @@ export type Vehicle = {
   vin: string | null;
   contact_email: string | null;
   current_mileage: number | null;
+  last_mileage_confirmed_at: string | null;
+  last_mileage_reminder_at: string | null;
   created_at: string;
   updated_at: string;
 };

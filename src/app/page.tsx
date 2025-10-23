@@ -124,6 +124,9 @@ export default async function DashboardPage() {
             <Link href="/service/new" className={primaryButtonClass}>
               + Log Service
             </Link>
+            <Link href="/vehicle/mileage" className={ghostButtonClass}>
+              Update Mileage
+            </Link>
             <Link href="/timeline" className={ghostButtonClass}>
               View Timeline
             </Link>
@@ -211,7 +214,7 @@ export default async function DashboardPage() {
               <h2 className="text-xl font-semibold tracking-tight text-slate-900">Last service</h2>
               <p className={mutedTextClass}>A quick snapshot of your most recent maintenance.</p>
             </div>
-            <Link href="/service/new" className={ghostButtonClass}>
+            <Link href="/service/new" className={`${ghostButtonClass} whitespace-nowrap`}>
               Log another
             </Link>
           </header>

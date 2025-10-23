@@ -106,3 +106,70 @@ export async function sendReminderEmail(params: SendReminderEmailParams) {
     html: htmlParts.join('')
   });
 }
+
+type SendMileageReminderEmailParams = {
+  sender: string;
+  to: string;
+  vehicle: Vehicle;
+  appBaseUrl: string;
+};
+
+export async function sendMileageReminderEmail(params: SendMileageReminderEmailParams) {
+  const { sender, to, vehicle, appBaseUrl } = params;
+
+  if (!sender) {
+    throw new Error('Missing REMINDER_FROM_EMAIL environment variable.');
+  }
+
+  if (!to) {
+    throw new Error('Missing recipient email address.');
+  }
+
+  const vehicleLabel = [vehicle.year, vehicle.make, vehicle.model].filter(Boolean).join(' ').trim();
+  const subject = 'AutoTrack reminder: Update your mileage';
+  const updateUrl = (() => {
+    try {
+      return new URL('/vehicle/mileage', appBaseUrl).toString();
+    } catch {
+      return null;
+    }
+  })();
+
+  const textLines = [
+    'Hi there!',
+    '',
+    `It has been a while since you updated the mileage for ${vehicleLabel || 'your vehicle'}.`,
+    'Keeping your odometer reading current helps AutoTrack send accurate maintenance reminders.'
+  ];
+
+  if (updateUrl) {
+    textLines.push('', `Update your mileage now: ${updateUrl}`);
+  }
+
+  textLines.push('', 'Safe driving! — The AutoTrack team');
+
+  const filteredTextLines = textLines.filter((line) => line.trim().length > 0);
+
+  const htmlParts: string[] = [
+    `<p style="margin:0 0 16px; font-size:16px;">It has been a while since you updated the mileage for <strong>${vehicleLabel || 'your vehicle'}</strong>.</p>`,
+    `<p style="margin:0 0 16px; font-size:15px;">Keeping your odometer reading current helps AutoTrack keep your maintenance reminders accurate.</p>`
+  ];
+
+  if (updateUrl) {
+    htmlParts.push(
+      `<p style="margin:0 0 16px;"><a href="${updateUrl}" style="display:inline-block; background:#0a84ff; color:#fff; padding:12px 20px; border-radius:999px; text-decoration:none; font-weight:600;">Update mileage</a></p>`
+    );
+  }
+
+  htmlParts.push(
+    `<p style="margin:24px 0 0; font-size:13px; color:#6b7280;">You are receiving this reminder because you asked AutoTrack to send mileage updates.</p>`
+  );
+
+  await getResendClient().emails.send({
+    from: sender,
+    to,
+    subject,
+    text: filteredTextLines.join('\n'),
+    html: htmlParts.join('')
+  });
+}
