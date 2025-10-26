@@ -6,7 +6,7 @@ import { cardClass, ghostButtonCompactClass, mutedTextClass } from '../../../lib
 import { UpdateMileageForm } from './update-form';
 
 export default async function UpdateMileagePage() {
-  const deviceId = requireDeviceId('/vehicle/mileage');
+  const deviceId = await requireDeviceId('/vehicle/mileage');
   const vehicle = await getVehicleByDevice(deviceId);
 
   if (!vehicle) {

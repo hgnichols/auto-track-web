@@ -6,7 +6,7 @@ import { requireDeviceId } from '../../lib/device';
 import { createVehicle, ensureDevice, getVehicleCatalogEntry } from '../../lib/repository';
 
 export async function submitVehicleAction(formData: FormData) {
-  const deviceId = requireDeviceId('/onboarding');
+  const deviceId = await requireDeviceId('/onboarding');
   await ensureDevice(deviceId);
 
   const yearValue = formData.get('year');

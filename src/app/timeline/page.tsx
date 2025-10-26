@@ -11,7 +11,7 @@ import {
 } from '../../lib/ui';
 
 export default async function TimelinePage() {
-  const deviceId = requireDeviceId('/timeline');
+  const deviceId = await requireDeviceId('/timeline');
   const data = await getDashboardData(deviceId);
 
   if (!data) {

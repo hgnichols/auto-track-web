@@ -6,7 +6,7 @@ import { requireDeviceId } from '../../../lib/device';
 import { createCustomServiceLog, createServiceLog, getVehicleByDevice } from '../../../lib/repository';
 
 export async function submitServiceAction(formData: FormData) {
-  const deviceId = requireDeviceId('/service/new');
+  const deviceId = await requireDeviceId('/service/new');
   const vehicle = await getVehicleByDevice(deviceId);
 
   if (!vehicle) {

@@ -6,7 +6,7 @@ import { requireDeviceId } from '../../../lib/device';
 import { getVehicleByDevice, updateVehicleMileage } from '../../../lib/repository';
 
 export async function submitMileageUpdateAction(formData: FormData) {
-  const deviceId = requireDeviceId('/vehicle/mileage');
+  const deviceId = await requireDeviceId('/vehicle/mileage');
   const vehicle = await getVehicleByDevice(deviceId);
 
   if (!vehicle) {

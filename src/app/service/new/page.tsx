@@ -16,7 +16,7 @@ import {
 } from '../../../lib/ui';
 
 export default async function NewServicePage() {
-  const deviceId = requireDeviceId('/service/new');
+  const deviceId = await requireDeviceId('/service/new');
   const data = await getDashboardData(deviceId);
 
   if (!data) {

@@ -5,7 +5,7 @@ import { cardClass, mutedTextClass, pillVariants } from '../../lib/ui';
 import { VehicleForm } from './vehicle-form';
 
 export default async function OnboardingPage() {
-  const deviceId = requireDeviceId('/onboarding');
+  const deviceId = await requireDeviceId('/onboarding');
   const existing = await getDashboardData(deviceId);
 
   if (existing?.vehicle) {

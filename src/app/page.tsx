@@ -15,7 +15,7 @@ import {
 } from '../lib/ui';
 
 export default async function DashboardPage() {
-  const deviceId = requireDeviceId('/');
+  const deviceId = await requireDeviceId('/');
   const data = await getDashboardData(deviceId);
 
   if (!data) {
