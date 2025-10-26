@@ -38,6 +38,7 @@ export function TypeaheadSelect({
 }: TypeaheadSelectProps) {
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
+  const [hasTyped, setHasTyped] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number>(-1);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -51,7 +52,7 @@ export function TypeaheadSelect({
   const normalizedQuery = query.trim().toLowerCase();
 
   const filteredOptions = useMemo(() => {
-    if (!normalizedQuery) {
+    if (!hasTyped || !normalizedQuery) {
       return options;
     }
 
@@ -60,7 +61,7 @@ export function TypeaheadSelect({
       const labelMatch = option.label.toLowerCase().includes(normalizedQuery);
       return valueMatch || labelMatch;
     });
-  }, [normalizedQuery, options]);
+  }, [normalizedQuery, options, hasTyped]);
 
   useEffect(() => {
     if (!required || !inputRef.current) {
@@ -82,8 +83,10 @@ export function TypeaheadSelect({
   useEffect(() => {
     if (selectedOption) {
       setQuery(selectedOption.label);
+      setHasTyped(false);
     } else if (!value) {
       setQuery('');
+      setHasTyped(false);
     }
   }, [selectedOption, value]);
 
@@ -125,12 +128,14 @@ export function TypeaheadSelect({
   const handleSelect = (option: Option) => {
     onChange(option.value);
     setQuery(option.label);
+    setHasTyped(false);
     setIsOpen(false);
   };
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const nextQuery = event.target.value;
     setQuery(nextQuery);
+    setHasTyped(true);
     if (!isOpen) {
       setIsOpen(true);
     }
