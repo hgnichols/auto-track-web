@@ -33,7 +33,7 @@ export const cardClass =
   'rounded-3xl border border-slate-200/80 bg-white/80 p-8 shadow-[0_34px_68px_-44px_rgba(15,23,42,0.75)] backdrop-blur-2xl backdrop-saturate-150 transition-all duration-200 motion-safe:animate-[fade-in-scale_0.45s_ease-out] dark:border-slate-700/60 dark:bg-slate-900/60 dark:shadow-[0_34px_68px_-44px_rgba(2,6,23,0.85)]';
 
 export const timelineItemClass =
-  'grid gap-2 rounded-3xl border border-slate-200/80 bg-white/80 p-5 shadow-[0_30px_65px_-50px_rgba(15,23,42,0.7)] backdrop-blur-2xl transition-all duration-200 motion-safe:animate-[fade-in-scale_0.45s_ease-out] dark:border-slate-700/60 dark:bg-slate-900/60 dark:shadow-[0_30px_65px_-50px_rgba(2,6,23,0.85)]';
+  'grid gap-2 rounded-3xl border border-slate-200/80 bg-white/80 p-5 shadow-[0_30px_65px_-50px_rgba(15,23,42,0.7)] ring-1 ring-white/40 backdrop-blur-2xl transition-all duration-200 motion-safe:animate-[fade-in-scale_0.45s_ease-out] dark:border-slate-700/60 dark:bg-slate-900/60 dark:ring-slate-700/60 dark:shadow-[0_30px_65px_-50px_rgba(2,6,23,0.85)]';
 
 export const inputClass =
   'w-full rounded-2xl border border-slate-300/70 bg-white/80 px-4 py-3 text-slate-900 shadow-[0_20px_40px_-32px_rgba(15,23,42,0.55)] transition-all duration-200 placeholder:text-slate-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100 dark:placeholder:text-slate-400 dark:shadow-[0_20px_40px_-32px_rgba(2,6,23,0.7)] dark:focus-visible:outline-blue-400';
