@@ -156,7 +156,7 @@ export function VehicleForm({ years }: VehicleFormProps) {
     <form action={submitVehicleAction} className="grid gap-6">
       <div className="grid gap-4 sm:grid-cols-2">
         <div className={formFieldClass}>
-          <label htmlFor="year" className="text-sm font-medium text-slate-600">
+          <label htmlFor="year" className="text-sm font-medium text-slate-600 dark:text-slate-300">
             Year *
           </label>
           <TypeaheadSelect
@@ -170,7 +170,7 @@ export function VehicleForm({ years }: VehicleFormProps) {
           />
         </div>
         <div className={formFieldClass}>
-          <label htmlFor="make" className="text-sm font-medium text-slate-600">
+          <label htmlFor="make" className="text-sm font-medium text-slate-600 dark:text-slate-300">
             Make *
           </label>
           <TypeaheadSelect
@@ -192,7 +192,7 @@ export function VehicleForm({ years }: VehicleFormProps) {
           />
         </div>
         <div className={formFieldClass}>
-          <label htmlFor="model" className="text-sm font-medium text-slate-600">
+          <label htmlFor="model" className="text-sm font-medium text-slate-600 dark:text-slate-300">
             Model *
           </label>
           <TypeaheadSelect
@@ -214,13 +214,13 @@ export function VehicleForm({ years }: VehicleFormProps) {
           />
         </div>
         <div className={formFieldClass}>
-          <label htmlFor="vin" className="text-sm font-medium text-slate-600">
+          <label htmlFor="vin" className="text-sm font-medium text-slate-600 dark:text-slate-300">
             VIN
           </label>
           <input id="vin" name="vin" type="text" placeholder="Optional" className={inputClass} />
         </div>
         <div className={formFieldClass}>
-          <label htmlFor="current_mileage" className="text-sm font-medium text-slate-600">
+          <label htmlFor="current_mileage" className="text-sm font-medium text-slate-600 dark:text-slate-300">
             Current mileage
           </label>
           <input
@@ -234,7 +234,7 @@ export function VehicleForm({ years }: VehicleFormProps) {
           />
         </div>
         <div className={formFieldClass}>
-          <label htmlFor="contact_email" className="text-sm font-medium text-slate-600">
+          <label htmlFor="contact_email" className="text-sm font-medium text-slate-600 dark:text-slate-300">
             Reminder email
           </label>
           <input

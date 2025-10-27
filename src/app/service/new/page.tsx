@@ -29,7 +29,7 @@ export default async function NewServicePage() {
   return (
     <div className="mx-auto grid w-full max-w-3xl gap-6 px-4 py-12 sm:py-16">
       <header className="grid gap-2">
-        <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Log service</h1>
+        <h1 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">Log service</h1>
         <p className={`${mutedTextClass} text-base`}>
           Keep your history up to date. We will update reminders automatically.
         </p>
@@ -40,14 +40,14 @@ export default async function NewServicePage() {
           <ServiceTypeField schedules={schedules} />
 
           <div className={formFieldClass}>
-            <label htmlFor="service_date" className="text-sm font-medium text-slate-600">
+            <label htmlFor="service_date" className="text-sm font-medium text-slate-600 dark:text-slate-300">
               Service date
             </label>
             <input id="service_date" name="service_date" type="date" required className={inputClass} />
           </div>
 
           <div className={formFieldClass}>
-            <label htmlFor="mileage" className="text-sm font-medium text-slate-600">
+            <label htmlFor="mileage" className="text-sm font-medium text-slate-600 dark:text-slate-300">
               Mileage
             </label>
             <input
@@ -66,7 +66,7 @@ export default async function NewServicePage() {
           </div>
 
           <div className={formFieldClass}>
-            <label htmlFor="cost" className="text-sm font-medium text-slate-600">
+            <label htmlFor="cost" className="text-sm font-medium text-slate-600 dark:text-slate-300">
               Cost
             </label>
             <input
@@ -81,7 +81,7 @@ export default async function NewServicePage() {
           </div>
 
           <div className={formFieldClass}>
-            <label htmlFor="notes" className="text-sm font-medium text-slate-600">
+            <label htmlFor="notes" className="text-sm font-medium text-slate-600 dark:text-slate-300">
               Notes
             </label>
             <textarea
@@ -109,7 +109,7 @@ export default async function NewServicePage() {
 
       <section className={`${cardClass} grid gap-4`}>
         <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-lg font-semibold tracking-tight text-slate-900">Reminder preview</h2>
+          <h2 className="text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-100">Reminder preview</h2>
           <Link href="/timeline" className={ghostButtonClass}>
             View timeline
           </Link>
@@ -129,10 +129,10 @@ export default async function NewServicePage() {
             return (
               <li
                 key={item.schedule.id}
-                className="grid gap-2 rounded-2xl bg-slate-100/80 p-4 text-sm text-slate-600"
+                className="grid gap-2 rounded-2xl border border-slate-200/80 bg-white/80 p-4 text-sm text-slate-600 ring-1 ring-white/40 shadow-[0_20px_45px_-35px_rgba(15,23,42,0.55)] dark:border-slate-700/60 dark:bg-slate-900/60 dark:text-slate-300 dark:ring-slate-700/60 dark:shadow-[0_20px_45px_-32px_rgba(2,6,23,0.75)]"
               >
                 <div className="flex items-center justify-between gap-3">
-                  <strong className="text-slate-900">{item.schedule.service_name}</strong>
+                  <strong className="text-slate-900 dark:text-slate-100">{item.schedule.service_name}</strong>
                   <span className={statusPillClass(item.status)}>{statusLabel}</span>
                 </div>
                 <span className={mutedTextClass}>

@@ -222,7 +222,7 @@ export function TypeaheadSelect({
 
       <input type="hidden" name={name} value={value} />
 
-      <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-400">
+      <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-400 dark:text-slate-500">
         <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
           <path
             d="M6 9l6 6 6-6"
@@ -239,12 +239,12 @@ export function TypeaheadSelect({
         <div
           id={listboxId}
           role="listbox"
-          className="absolute z-10 mt-2 max-h-64 w-full overflow-y-auto rounded-2xl border border-slate-200/70 bg-white/85 p-1 shadow-[0_26px_65px_-45px_rgba(15,23,42,0.75)] backdrop-blur-2xl ring-1 ring-white/40 motion-safe:animate-[fade-in-up_0.3s_ease-out]"
+          className="absolute z-10 mt-2 max-h-64 w-full overflow-y-auto rounded-2xl border border-slate-200/70 bg-white/85 p-1 shadow-[0_26px_65px_-45px_rgba(15,23,42,0.75)] backdrop-blur-2xl ring-1 ring-white/40 motion-safe:animate-[fade-in-up_0.3s_ease-out] dark:border-slate-700/70 dark:bg-slate-950/75 dark:ring-slate-700/60 dark:shadow-[0_26px_65px_-45px_rgba(2,6,23,0.85)]"
         >
           {isLoading ? (
-            <div className="px-3 py-2 text-sm text-slate-500">{loadingText}</div>
+            <div className="px-3 py-2 text-sm text-slate-500 dark:text-slate-300">{loadingText}</div>
           ) : filteredOptions.length === 0 ? (
-            <div className="px-3 py-2 text-sm text-slate-500">{emptyText}</div>
+            <div className="px-3 py-2 text-sm text-slate-500 dark:text-slate-300">{emptyText}</div>
           ) : (
             filteredOptions.map((option, index) => {
               const isActive = index === activeIndex;
@@ -256,10 +256,10 @@ export function TypeaheadSelect({
                   role="option"
                   aria-selected={isSelected}
                   className={clsx(
-                    'cursor-pointer rounded-2xl px-3 py-2 text-sm transition-colors duration-150 hover:bg-blue-50 hover:text-blue-600',
+                    'cursor-pointer rounded-2xl px-3 py-2 text-sm transition-colors duration-150 hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-slate-800/80 dark:hover:text-slate-100',
                     {
-                      'bg-blue-50 text-blue-600': isActive || isSelected,
-                      'text-slate-700': !isActive && !isSelected
+                      'bg-blue-50 text-blue-600 dark:bg-blue-500/20 dark:text-blue-200': isActive || isSelected,
+                      'text-slate-700 dark:text-slate-200': !isActive && !isSelected
                     }
                   )}
                   onMouseDown={(event) => {

@@ -40,10 +40,14 @@
 
 @layer base {
   :root {
-    color-scheme: only light;
+    color-scheme: light;
+  }
+
+  .dark {
+    color-scheme: dark;
   }
 
   body {
-    @apply min-h-screen bg-app-gradient bg-fixed font-sans text-slate-900 antialiased;
+    @apply min-h-screen bg-app-gradient bg-fixed font-sans text-slate-900 antialiased dark:bg-app-gradient-dark dark:text-slate-100;
   }
 }

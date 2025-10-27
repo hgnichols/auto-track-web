@@ -24,7 +24,7 @@ export default async function TimelinePage() {
   return (
     <div className="grid gap-6">
       <header className="grid gap-2">
-        <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Maintenance timeline</h1>
+        <h1 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">Maintenance timeline</h1>
         <p className={`${mutedTextClass} text-base`}>
           Track what was done and see what&apos;s coming up next.
         </p>
@@ -32,7 +32,7 @@ export default async function TimelinePage() {
 
       {entries.length === 0 ? (
         <div className={emptyStateClass}>
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-slate-600 dark:text-slate-300">
             You have no maintenance records yet. Log a service to get started.
           </p>
         </div>
@@ -49,20 +49,23 @@ export default async function TimelinePage() {
               const statusDecorators =
                 entry.status === 'overdue'
                   ? {
-                      container: 'border-red-200/70 bg-red-50/80',
-                      marker: 'bg-red-500',
-                      title: 'text-red-900'
+                      container:
+                        'border-red-200/70 ring-1 ring-red-200/60 dark:border-red-500/40 dark:ring-red-500/25',
+                      marker: 'bg-red-500 dark:bg-red-400',
+                      title: 'text-red-900 dark:text-red-100'
                     }
                   : entry.status === 'due_soon'
                   ? {
-                      container: 'border-amber-200/70 bg-amber-50/80',
-                      marker: 'bg-amber-400',
-                      title: 'text-amber-900'
+                      container:
+                        'border-amber-200/70 ring-1 ring-amber-200/60 dark:border-amber-500/40 dark:ring-amber-500/25',
+                      marker: 'bg-amber-400 dark:bg-amber-300',
+                      title: 'text-amber-900 dark:text-amber-100'
                     }
                   : {
-                      container: 'border-blue-200/70 bg-blue-50/80',
-                      marker: 'bg-blue-500',
-                      title: 'text-slate-900'
+                      container:
+                        'border-blue-200/70 ring-1 ring-blue-200/60 dark:border-blue-500/40 dark:ring-blue-500/25',
+                      marker: 'bg-blue-500 dark:bg-blue-400',
+                      title: 'text-slate-900 dark:text-slate-100'
                     };
 
               return (
@@ -92,7 +95,9 @@ export default async function TimelinePage() {
             return (
               <article key={entry.id} className={timelineItemClass}>
                 <div className="flex items-center justify-between gap-3">
-                  <h2 className="text-lg font-semibold tracking-tight text-slate-900">{entry.title}</h2>
+                  <h2 className="text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-100">
+                    {entry.title}
+                  </h2>
                   <span className={pillVariants.accent}>Completed</span>
                 </div>
                 <p className={mutedTextClass}>
