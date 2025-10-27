@@ -210,7 +210,7 @@ export function TypeaheadSelect({
             ? `${id}-option-${filteredOptions[activeIndex].value}`
             : undefined
         }
-        className={clsx(inputClass, 'pr-10')}
+        className={clsx(inputClass, 'pr-12')}
         placeholder={placeholder}
         value={query}
         onChange={handleInputChange}
@@ -239,7 +239,7 @@ export function TypeaheadSelect({
         <div
           id={listboxId}
           role="listbox"
-          className="absolute z-10 mt-2 max-h-64 w-full overflow-y-auto rounded-2xl border border-slate-200 bg-white/95 p-1 shadow-lg backdrop-blur"
+          className="absolute z-10 mt-2 max-h-64 w-full overflow-y-auto rounded-2xl border border-slate-200/70 bg-white/85 p-1 shadow-[0_26px_65px_-45px_rgba(15,23,42,0.75)] backdrop-blur-2xl ring-1 ring-white/40 motion-safe:animate-[fade-in-up_0.3s_ease-out]"
         >
           {isLoading ? (
             <div className="px-3 py-2 text-sm text-slate-500">{loadingText}</div>
@@ -256,7 +256,7 @@ export function TypeaheadSelect({
                   role="option"
                   aria-selected={isSelected}
                   className={clsx(
-                    'cursor-pointer rounded-2xl px-3 py-2 text-sm transition hover:bg-blue-50 hover:text-blue-600',
+                    'cursor-pointer rounded-2xl px-3 py-2 text-sm transition-colors duration-150 hover:bg-blue-50 hover:text-blue-600',
                     {
                       'bg-blue-50 text-blue-600': isActive || isSelected,
                       'text-slate-700': !isActive && !isSelected

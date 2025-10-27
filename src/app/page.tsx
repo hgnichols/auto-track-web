@@ -84,13 +84,13 @@ export default async function DashboardPage() {
       }`
     : 'Log a service to build history and personalized reminders.';
 
-  const heroCardClass = `${cardClass} relative overflow-hidden bg-[linear-gradient(145deg,_rgba(10,132,255,0.12),_rgba(255,255,255,0.9))]`;
-  const panelCardClass = `${cardClass} grid gap-6`;
+  const heroCardClass = `${cardClass} relative overflow-hidden bg-[linear-gradient(155deg,_rgba(14,165,233,0.18),_rgba(255,255,255,0.94))] ring-1 ring-white/40`;
+  const panelCardClass = `${cardClass} grid gap-6 bg-white/75 ring-1 ring-white/40`;
 
   return (
     <div className="grid gap-10">
       {reminderCandidates.length > 0 && (
-        <section className="grid gap-4 rounded-3xl border border-amber-200/70 bg-amber-50/90 p-7 text-slate-700 shadow-soft">
+        <section className="grid gap-4 rounded-3xl border border-amber-200/70 bg-gradient-to-br from-amber-50/90 via-white/90 to-amber-100/70 p-7 text-slate-700 shadow-[0_30px_70px_-50px_rgba(217,119,6,0.65)] ring-1 ring-white/30">
           <div className="space-y-2">
             <h2 className="text-lg font-semibold tracking-tight text-slate-900">Upcoming maintenance</h2>
             {reminderSummary && (
@@ -117,7 +117,7 @@ export default async function DashboardPage() {
               {vehicle.year ? `${vehicle.year} ` : ''}
               {vehicle.make} {vehicle.model}
             </h1>
-            <p className="text-base text-slate-500">{mileageLabel}</p>
+            <p className="text-base text-slate-600">{mileageLabel}</p>
           </div>
 
           <div className="flex flex-wrap gap-3">
@@ -134,7 +134,7 @@ export default async function DashboardPage() {
         </div>
 
         <div className="relative z-10 mt-9 grid gap-4 sm:grid-cols-2">
-          <div className="grid gap-1 rounded-2xl border border-white/50 bg-white/70 p-6 shadow-inner backdrop-blur">
+          <div className="grid gap-1 rounded-2xl border border-white/50 bg-white/75 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] backdrop-blur">
             <span className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">
               Next reminder
             </span>
@@ -144,7 +144,7 @@ export default async function DashboardPage() {
             <span className="text-sm text-slate-500">{nextServiceMeta}</span>
             {nextServiceSecondary && <span className={tertiaryTextClass}>{nextServiceSecondary}</span>}
           </div>
-          <div className="grid gap-1 rounded-2xl border border-white/50 bg-white/70 p-6 shadow-inner backdrop-blur">
+          <div className="grid gap-1 rounded-2xl border border-white/50 bg-white/75 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] backdrop-blur">
             <span className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">
               Last service
             </span>
@@ -158,7 +158,11 @@ export default async function DashboardPage() {
 
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -right-[20%] -bottom-[45%] h-[420px] w-[420px] translate-y-[20%] rounded-full bg-[radial-gradient(circle,_rgba(10,132,255,0.18),_transparent_70%)]"
+          className="pointer-events-none absolute -right-[18%] -bottom-[40%] h-[420px] w-[420px] translate-y-[20%] rounded-full bg-[radial-gradient(circle,_rgba(56,189,248,0.22),_transparent_70%)]"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -left-[12%] -top-[24%] h-64 w-64 rounded-full bg-[radial-gradient(circle,_rgba(79,70,229,0.28),_transparent_70%)]"
         />
       </section>
 

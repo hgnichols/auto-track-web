@@ -56,14 +56,40 @@ type LocalDatabase = {
   serviceLogs: ServiceLog[];
 };
 
-const initialDevices = ['device-alpha', 'device-beta', 'device-gamma'];
+const SEEDED_IDS = {
+  devices: {
+    alpha: 'f7f5a6d6-8f7e-4e84-b2ba-103097e3bc07',
+    beta: '12d47a79-ef2c-4b74-8ce5-5ff1bd1e2e45',
+    gamma: '56a9bf80-8faf-4e80-88e0-5e872f6298a4'
+  },
+  vehicles: {
+    alpha: 'a1fb3a33-4244-4f89-830b-0b954d810e16',
+    beta: '9e7a28d4-6672-4d98-9c5f-cc85de08a3b1',
+    gamma: 'c95dd92b-0360-47c8-84c8-b4886217d9a7'
+  },
+  schedules: {
+    alphaOil: '7222f2dd-54cf-4d41-aa07-e875886af8c3',
+    alphaTires: 'ac7f06e2-4d5f-4095-9f37-9cefb5b2fc54',
+    betaBrake: 'eb205cb1-5ad3-4899-9ed6-fbd86218b58b',
+    gammaTrans: '391d4b70-f3aa-4935-90cc-d2e2c932a0b3',
+    gammaCabin: '1ab7d6af-6e7b-4c77-8437-4e66b4a79e2f'
+  },
+  logs: {
+    alpha1: 'd85d4e36-8ff6-41ee-9ed7-6ccd3bc6c492',
+    alpha2: '36dcf6b2-2bf1-4a52-932c-f98c1a9c9403',
+    beta1: '863b9d6a-4cc4-4a0c-9834-18a08d4a6f9b',
+    gamma1: '6a6b82f4-14f2-4e36-b35c-bb6b004ccf03'
+  }
+} as const;
+
+const initialDevices = Object.values(SEEDED_IDS.devices);
 
 const localDb: LocalDatabase = {
   devices: new Set(initialDevices),
   vehicles: [
     {
-      id: 'veh-alpha',
-      device_id: 'device-alpha',
+      id: SEEDED_IDS.vehicles.alpha,
+      device_id: SEEDED_IDS.devices.alpha,
       year: 2018,
       make: 'Toyota',
       model: 'Camry',
@@ -76,8 +102,8 @@ const localDb: LocalDatabase = {
       updated_at: '2024-05-04T15:45:00.000Z'
     },
     {
-      id: 'veh-beta',
-      device_id: 'device-beta',
+      id: SEEDED_IDS.vehicles.beta,
+      device_id: SEEDED_IDS.devices.beta,
       year: 2021,
       make: 'Ford',
       model: 'F-150',
@@ -90,8 +116,8 @@ const localDb: LocalDatabase = {
       updated_at: '2024-04-21T11:00:00.000Z'
     },
     {
-      id: 'veh-gamma',
-      device_id: 'device-gamma',
+      id: SEEDED_IDS.vehicles.gamma,
+      device_id: SEEDED_IDS.devices.gamma,
       year: 2015,
       make: 'Honda',
       model: 'CR-V',
@@ -106,9 +132,9 @@ const localDb: LocalDatabase = {
   ],
   schedules: [
     {
-      id: 'sch-alpha-oil',
-      device_id: 'device-alpha',
-      vehicle_id: 'veh-alpha',
+      id: SEEDED_IDS.schedules.alphaOil,
+      device_id: SEEDED_IDS.devices.alpha,
+      vehicle_id: SEEDED_IDS.vehicles.alpha,
       service_code: 'OIL_CHANGE',
       service_name: 'Engine Oil & Filter',
       interval_months: 6,
@@ -125,9 +151,9 @@ const localDb: LocalDatabase = {
       updated_at: '2024-06-17T14:00:00.000Z'
     },
     {
-      id: 'sch-alpha-tires',
-      device_id: 'device-alpha',
-      vehicle_id: 'veh-alpha',
+      id: SEEDED_IDS.schedules.alphaTires,
+      device_id: SEEDED_IDS.devices.alpha,
+      vehicle_id: SEEDED_IDS.vehicles.alpha,
       service_code: 'TIRE_ROTATION',
       service_name: 'Tire Rotation',
       interval_months: 6,
@@ -144,9 +170,9 @@ const localDb: LocalDatabase = {
       updated_at: '2024-02-10T09:50:00.000Z'
     },
     {
-      id: 'sch-beta-brake',
-      device_id: 'device-beta',
-      vehicle_id: 'veh-beta',
+      id: SEEDED_IDS.schedules.betaBrake,
+      device_id: SEEDED_IDS.devices.beta,
+      vehicle_id: SEEDED_IDS.vehicles.beta,
       service_code: 'BRAKE_INSPECTION',
       service_name: 'Brake Inspection',
       interval_months: 12,
@@ -163,9 +189,9 @@ const localDb: LocalDatabase = {
       updated_at: '2024-04-05T10:00:00.000Z'
     },
     {
-      id: 'sch-gamma-trans',
-      device_id: 'device-gamma',
-      vehicle_id: 'veh-gamma',
+      id: SEEDED_IDS.schedules.gammaTrans,
+      device_id: SEEDED_IDS.devices.gamma,
+      vehicle_id: SEEDED_IDS.vehicles.gamma,
       service_code: 'TRANSMISSION_SERVICE',
       service_name: 'Transmission Fluid Service',
       interval_months: 36,
@@ -182,9 +208,9 @@ const localDb: LocalDatabase = {
       updated_at: '2022-11-20T16:40:00.000Z'
     },
     {
-      id: 'sch-gamma-cabin',
-      device_id: 'device-gamma',
-      vehicle_id: 'veh-gamma',
+      id: SEEDED_IDS.schedules.gammaCabin,
+      device_id: SEEDED_IDS.devices.gamma,
+      vehicle_id: SEEDED_IDS.vehicles.gamma,
       service_code: 'CABIN_FILTER',
       service_name: 'Cabin Air Filter Replacement',
       interval_months: 12,
@@ -203,10 +229,10 @@ const localDb: LocalDatabase = {
   ],
   serviceLogs: [
     {
-      id: 'log-alpha-1',
-      device_id: 'device-alpha',
-      vehicle_id: 'veh-alpha',
-      schedule_id: 'sch-alpha-oil',
+      id: SEEDED_IDS.logs.alpha1,
+      device_id: SEEDED_IDS.devices.alpha,
+      vehicle_id: SEEDED_IDS.vehicles.alpha,
+      schedule_id: SEEDED_IDS.schedules.alphaOil,
       service_code: 'OIL_CHANGE',
       service_name: 'Engine Oil & Filter',
       service_date: '2024-01-03',
@@ -216,10 +242,10 @@ const localDb: LocalDatabase = {
       created_at: '2024-01-03T16:00:00.000Z'
     },
     {
-      id: 'log-alpha-2',
-      device_id: 'device-alpha',
-      vehicle_id: 'veh-alpha',
-      schedule_id: 'sch-alpha-tires',
+      id: SEEDED_IDS.logs.alpha2,
+      device_id: SEEDED_IDS.devices.alpha,
+      vehicle_id: SEEDED_IDS.vehicles.alpha,
+      schedule_id: SEEDED_IDS.schedules.alphaTires,
       service_code: 'TIRE_ROTATION',
       service_name: 'Tire Rotation',
       service_date: '2024-02-10',
@@ -229,9 +255,9 @@ const localDb: LocalDatabase = {
       created_at: '2024-02-10T18:20:00.000Z'
     },
     {
-      id: 'log-beta-1',
-      device_id: 'device-beta',
-      vehicle_id: 'veh-beta',
+      id: SEEDED_IDS.logs.beta1,
+      device_id: SEEDED_IDS.devices.beta,
+      vehicle_id: SEEDED_IDS.vehicles.beta,
       schedule_id: null,
       service_code: null,
       service_name: 'Bed Liner Installation',
@@ -242,10 +268,10 @@ const localDb: LocalDatabase = {
       created_at: '2023-08-12T15:10:00.000Z'
     },
     {
-      id: 'log-gamma-1',
-      device_id: 'device-gamma',
-      vehicle_id: 'veh-gamma',
-      schedule_id: 'sch-gamma-cabin',
+      id: SEEDED_IDS.logs.gamma1,
+      device_id: SEEDED_IDS.devices.gamma,
+      vehicle_id: SEEDED_IDS.vehicles.gamma,
+      schedule_id: SEEDED_IDS.schedules.gammaCabin,
       service_code: 'CABIN_FILTER',
       service_name: 'Cabin Air Filter Replacement',
       service_date: '2023-03-01',
