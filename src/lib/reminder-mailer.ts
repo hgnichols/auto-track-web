@@ -1,4 +1,4 @@
-import { Resend } from 'resend';
+import { Resend, type CreateEmailResponseSuccess, type ErrorResponse } from 'resend';
 import { nextReminderLabel } from './dashboard-helpers';
 import type { UpcomingService } from './dashboard-helpers';
 import type { Vehicle } from './types';
@@ -27,7 +27,9 @@ function getResendClient() {
   return resendClient;
 }
 
-export async function sendReminderEmail(params: SendReminderEmailParams) {
+export async function sendReminderEmail(
+  params: SendReminderEmailParams
+): Promise<CreateEmailResponseSuccess> {
   const { sender, to, vehicle, service, appBaseUrl } = params;
 
   if (!sender) {
@@ -98,13 +100,25 @@ export async function sendReminderEmail(params: SendReminderEmailParams) {
     `<p style="margin:24px 0 0; font-size:13px; color:#6b7280;">You are receiving this reminder because you asked AutoTrack to keep you up to date on maintenance.</p>`
   );
 
-  await getResendClient().emails.send({
+  const { data, error } = await getResendClient().emails.send({
     from: sender,
     to,
     subject,
     text: textLines.join('\n'),
     html: htmlParts.join('')
   });
+
+  if (error) {
+    throw new Error(
+      `Resend failed to send reminder email: ${typeof error === 'object' && error ? stringifyResendError(error) : String(error)}`
+    );
+  }
+
+  if (!data) {
+    throw new Error('Resend returned an empty response when sending reminder email.');
+  }
+
+  return data;
 }
 
 type SendMileageReminderEmailParams = {
@@ -114,7 +128,9 @@ type SendMileageReminderEmailParams = {
   appBaseUrl: string;
 };
 
-export async function sendMileageReminderEmail(params: SendMileageReminderEmailParams) {
+export async function sendMileageReminderEmail(
+  params: SendMileageReminderEmailParams
+): Promise<CreateEmailResponseSuccess> {
   const { sender, to, vehicle, appBaseUrl } = params;
 
   if (!sender) {
@@ -165,11 +181,42 @@ export async function sendMileageReminderEmail(params: SendMileageReminderEmailP
     `<p style="margin:24px 0 0; font-size:13px; color:#6b7280;">You are receiving this reminder because you asked AutoTrack to send mileage updates.</p>`
   );
 
-  await getResendClient().emails.send({
+  const { data, error } = await getResendClient().emails.send({
     from: sender,
     to,
     subject,
     text: filteredTextLines.join('\n'),
     html: htmlParts.join('')
   });
+
+  if (error) {
+    throw new Error(
+      `Resend failed to send mileage reminder email: ${typeof error === 'object' && error ? stringifyResendError(error) : String(error)}`
+    );
+  }
+
+  if (!data) {
+    throw new Error('Resend returned an empty response when sending mileage reminder email.');
+  }
+
+  return data;
+}
+
+function stringifyResendError(error: unknown) {
+  if (typeof error === 'string') {
+    return error;
+  }
+
+  if (!error || typeof error !== 'object') {
+    return 'Unknown error';
+  }
+
+  const typedError = error as Partial<ErrorResponse>;
+  const parts = [
+    typedError.name ?? 'ResendError',
+    typedError.statusCode ? `(${typedError.statusCode})` : '',
+    typedError.message ?? 'No message'
+  ].filter(Boolean);
+
+  return parts.join(' ');
 }

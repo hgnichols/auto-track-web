@@ -44,6 +44,8 @@ The experience is designed for mobile screens, uses a single-device anonymous se
    REMINDER_APP_BASE_URL=http://localhost:3000
    # Optional: REMINDER_REPEAT_HOURS=24
    # Optional: MILEAGE_REMINDER_DAYS=30
+   # Optional: REMINDER_TRIGGER_URL=https://your-domain.com/api/reminders/trigger
+   # Optional: REMINDER_CRON_TIMEOUT_MS=35000
    CARMD_API_KEY=your-carmd-api-key
    CARMD_API_SECRET=your-carmd-api-secret
    CARMD_PARTNER_TOKEN=your-carmd-partner-token
@@ -59,7 +61,12 @@ The experience is designed for mobile screens, uses a single-device anonymous se
 
 5. **Schedule reminders**
    - Hit `POST /api/reminders/trigger` with the header `Authorization: Bearer $REMINDER_CRON_SECRET`.
-   - Configure a cron job (Vercel Cron, GitHub Actions, etc.) to call the endpoint daily. The handler sends maintenance reminders and mileage update nudges via Resend, de-duplicating sends with the last sent timestamp on each record.
+   - `npm run cron:reminders` triggers the job manually and is safe to wire into any scheduler; the script defaults to `REMINDER_APP_BASE_URL` and accepts `REMINDER_TRIGGER_URL` when you need a fully-qualified target.
+   - Configure a cron job (system cron, Vercel Cron, GitHub Actions, etc.) to call the script daily at 10am Eastern. Example crontab entry:
+     ```
+     CRON_TZ=America/New_York 0 10 * * * /usr/bin/env node /path/to/repo/scripts/run-reminder-job.mjs >> /var/log/autotrack-reminders.log 2>&1
+     ```
+     The handler sends maintenance reminders and mileage update nudges via Resend, de-duplicating sends with the last sent timestamp on each record.
 
 ---
 

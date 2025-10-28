@@ -126,10 +126,15 @@ export async function POST(request: NextRequest) {
   const vehicles = await getVehiclesWithReminderContact();
   const now = new Date();
 
-  const sent: Array<{ scheduleId: string; email: string; status: MaintenanceStatus }> = [];
+  const sent: Array<{
+    scheduleId: string;
+    email: string;
+    status: MaintenanceStatus;
+    messageId: string;
+  }> = [];
   const skipped: Array<{ scheduleId: string; reason: string }> = [];
   const errors: Array<{ scheduleId: string; error: string }> = [];
-  const mileageSent: Array<{ vehicleId: string; email: string }> = [];
+  const mileageSent: Array<{ vehicleId: string; email: string; messageId: string }> = [];
   const mileageSkipped: Array<{ vehicleId: string; reason: string }> = [];
   const mileageErrors: Array<{ vehicleId: string; error: string }> = [];
 
@@ -157,7 +162,7 @@ export async function POST(request: NextRequest) {
       }
 
       try {
-        await sendReminderEmail({
+        const sendResult = await sendReminderEmail({
           sender,
           to: recipient,
           vehicle,
@@ -168,7 +173,8 @@ export async function POST(request: NextRequest) {
         sent.push({
           scheduleId: schedule.id,
           email: recipient,
-          status: upcomingService.status
+          status: upcomingService.status,
+          messageId: sendResult.id
         });
       } catch (error) {
         errors.push({
@@ -182,7 +188,7 @@ export async function POST(request: NextRequest) {
 
     if (mileageDecision.shouldSend) {
       try {
-        await sendMileageReminderEmail({
+        const sendResult = await sendMileageReminderEmail({
           sender,
           to: recipient,
           vehicle,
@@ -191,7 +197,8 @@ export async function POST(request: NextRequest) {
         await markMileageReminderSent(vehicle.id, now);
         mileageSent.push({
           vehicleId: vehicle.id,
-          email: recipient
+          email: recipient,
+          messageId: sendResult.id
         });
       } catch (error) {
         mileageErrors.push({

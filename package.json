@@ -12,7 +12,8 @@
     "generate:maintenance-catalog": "node scripts/generate-maintenance-catalog.mjs",
     "seed:vehicle-catalog": "node scripts/seed-vehicle-catalog.mjs",
     "seed:maintenance-catalog": "node scripts/seed-maintenance-catalog.mjs",
-    "export:vehicle-catalog-csv": "node scripts/export-vehicle-catalog-csv.mjs"
+    "export:vehicle-catalog-csv": "node scripts/export-vehicle-catalog-csv.mjs",
+    "cron:reminders": "node scripts/run-reminder-job.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.76.1",
