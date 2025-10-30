@@ -69,11 +69,17 @@ async function main() {
   const raw = await readFile(file, 'utf8');
   const parsed = JSON.parse(raw);
 
-  if (!Array.isArray(parsed.entries)) {
-    throw new Error('Catalog JSON does not contain an `entries` array.');
+  let entries;
+  if (Array.isArray(parsed)) {
+    entries = parsed;
+  } else if (Array.isArray(parsed.entries)) {
+    entries = parsed.entries;
+  } else {
+    throw new Error(
+      'Catalog JSON must be an array of entries or an object containing an `entries` array.'
+    );
   }
 
-  const entries = parsed.entries;
   console.log(`Preparing to upsert ${entries.length} vehicle catalog rows (batch size ${batch}).`);
 
   const client = createClient(url, serviceKey, {

@@ -28,7 +28,7 @@ The experience is designed for mobile screens, uses a single-device anonymous se
    - Create a new Supabase project.
    - Run the SQL in `supabase/schema.sql` inside the Supabase SQL editor.
    - Generate the vehicle catalog data with `npm run generate:vehicle-catalog` (pass `--start-year` / `--end-year` flags if you want to limit the range).
-   - Seed the catalog locally with `npm run seed:vehicle-catalog` (requires `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in your environment). This script streams the JSON into Supabase so you don't have to paste the large SQL file.
+   - Seed the catalog locally with `npm run seed:vehicle-catalog` (requires `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in your environment). If you already have a `vehicle_catalog.json`, pass it in with `npm run seed:vehicle-catalog -- --file=path/to/vehicle_catalog.json`. The script streams the JSON into Supabase so you don't have to paste the large SQL file.
    - (Optional) Enable Row Level Security if you plan to move away from the service role in server actions.
 
 3. **Environment variables**
@@ -124,7 +124,7 @@ The experience is designed for mobile screens, uses a single-device anonymous se
 | `npm run start` | Start the production server. |
 | `npm run lint` | Run ESLint. |
 | `npm run generate:vehicle-catalog` | Fetch the NHTSA VPIC catalog and emit Supabase seed files. |
-| `npm run seed:vehicle-catalog` | Push the generated catalog JSON into Supabase via the service role. |
+| `npm run seed:vehicle-catalog` | Push the generated catalog JSON into Supabase via the service role (supports `--file=path/to/catalog.json`). |
 | `npm run typecheck` | Static type checking with TypeScript. |
 
 ---
