@@ -6,7 +6,7 @@ AutoTrack helps everyday drivers stay ahead of maintenance with a single, focuse
 
 ## Features
 - **Dashboard:** Shows the next service due, highlights reminders, and surfaces the most recent maintenance log.
-- **Vehicle Profile:** Capture year, make, model, VIN (optional), and mileage for one vehicle.
+- **Vehicle Profiles:** Manage multiple vehicles per device, capturing year, make, model, VIN (optional), and mileage for each ride.
 - **Maintenance Timeline:** Combined view of upcoming (due-soon / overdue) services and completed work.
 - **Maintenance Schedules:** Preloaded templates with sensible default intervals for common services.
 - **Service Logging:** Log routine maintenance with mileage, cost, and notes; schedules update automatically.
@@ -109,7 +109,7 @@ The experience is designed for mobile screens, uses a single-device anonymous se
 ## Supabase Notes
 
 - The app uses server actions with the Supabase service role to simplify early MVP development. For production, consider moving to authenticated supabase-js clients with Row Level Security.
-- `devices` table binds anonymous users to a single vehicle via an HTTP-only cookie (`autotrack_device_id`).
+- `devices` table binds anonymous users to a cookie (`autotrack_device_id`), while any number of `vehicles` rows can reference the same device for multi-car garages.
 - `vehicle_catalog` stores normalized year/make/model combinations sourced from the NHTSA VPIC API via the provided generator script.
 - `service_schedules` drives reminders and timelines; `service_logs` keeps the maintenance history.
 
@@ -133,4 +133,4 @@ The experience is designed for mobile screens, uses a single-device anonymous se
 
 - Connect actual reminder delivery (email/push) using Supabase Functions or a cron scheduler.
 - Add offline caching or local storage fallbacks for when Supabase is unreachable.
-- Expand to multi-vehicle support by relaxing the unique constraint on `vehicles.device_id` and adapting the UI. 
+- Allow editing or archiving vehicles so garages can stay tidy over time.

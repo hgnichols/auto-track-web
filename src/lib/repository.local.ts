@@ -416,8 +416,19 @@ export async function ensureDevice(deviceId: string) {
   localDb.devices.add(deviceId);
 }
 
-export async function getVehicleByDevice(deviceId: string) {
-  return localDb.vehicles.find((vehicle) => vehicle.device_id === deviceId) ?? null;
+export async function listVehicles(deviceId: string) {
+  return localDb.vehicles
+    .filter((vehicle) => vehicle.device_id === deviceId)
+    .slice()
+    .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+}
+
+export async function getVehicle(deviceId: string, vehicleId: string) {
+  return (
+    localDb.vehicles.find(
+      (vehicle) => vehicle.device_id === deviceId && vehicle.id === vehicleId
+    ) ?? null
+  );
 }
 
 export async function createVehicle(deviceId: string, payload: CreateVehiclePayload) {
@@ -481,9 +492,11 @@ export async function ensureSchedulesExist(deviceId: string, vehicle: Vehicle) {
   }
 }
 
-export async function getSchedules(deviceId: string) {
+export async function getSchedules(deviceId: string, vehicleId: string) {
   return localDb.schedules
-    .filter((schedule) => schedule.device_id === deviceId)
+    .filter(
+      (schedule) => schedule.device_id === deviceId && schedule.vehicle_id === vehicleId
+    )
     .slice()
     .sort((a, b) => {
       const aDate = a.next_due_date ?? '';
@@ -501,9 +514,9 @@ export async function getSchedules(deviceId: string) {
     });
 }
 
-export async function getServiceLogs(deviceId: string) {
+export async function getServiceLogs(deviceId: string, vehicleId: string) {
   return localDb.serviceLogs
-    .filter((log) => log.device_id === deviceId)
+    .filter((log) => log.device_id === deviceId && log.vehicle_id === vehicleId)
     .slice()
     .sort((a, b) => {
       if (a.service_date !== b.service_date) {
@@ -522,6 +535,10 @@ export async function createServiceLog(
 
   if (!schedule) {
     throw new Error('Schedule not found for service log.');
+  }
+
+  if (schedule.device_id !== deviceId || schedule.vehicle_id !== vehicle.id) {
+    throw new Error('Schedule does not belong to the selected vehicle.');
   }
 
   const nowIso = new Date().toISOString();
@@ -634,21 +651,38 @@ export async function markMileageReminderSent(vehicleId: string, sentAt: Date) {
   vehicle.updated_at = sentAt.toISOString();
 }
 
-export async function getDashboardData(deviceId: string): Promise<DashboardData | null> {
+export async function getDashboardData(
+  deviceId: string,
+  vehicleId: string | null = null
+): Promise<DashboardData> {
   await ensureDevice(deviceId);
 
-  const vehicle = await getVehicleByDevice(deviceId);
+  const vehicles = await listVehicles(deviceId);
 
-  if (!vehicle) {
-    return null;
+  if (vehicles.length === 0) {
+    return {
+      vehicles: [],
+      activeVehicle: null,
+      schedules: [],
+      logs: []
+    };
   }
 
-  await ensureSchedulesExist(deviceId, vehicle);
+  const activeVehicle =
+    vehicleId !== null
+      ? vehicles.find((candidate) => candidate.id === vehicleId) ?? vehicles[0]
+      : vehicles[0];
 
-  const [schedules, logs] = await Promise.all([getSchedules(deviceId), getServiceLogs(deviceId)]);
+  await ensureSchedulesExist(deviceId, activeVehicle);
+
+  const [schedules, logs] = await Promise.all([
+    getSchedules(deviceId, activeVehicle.id),
+    getServiceLogs(deviceId, activeVehicle.id)
+  ]);
 
   return {
-    vehicle,
+    vehicles,
+    activeVehicle,
     schedules,
     logs
   };

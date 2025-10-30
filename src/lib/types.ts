@@ -59,7 +59,8 @@ export type ServiceLog = {
 };
 
 export type DashboardData = {
-  vehicle: Vehicle;
+  vehicles: Vehicle[];
+  activeVehicle: Vehicle | null;
   schedules: ServiceSchedule[];
   logs: ServiceLog[];
 };

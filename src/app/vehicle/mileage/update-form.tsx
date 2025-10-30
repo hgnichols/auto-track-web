@@ -6,6 +6,7 @@ import { formFieldClass, inputClass, primaryButtonCompactClass } from '../../../
 
 type UpdateMileageFormProps = {
   defaultMileage: number | null;
+  vehicleId: string;
 };
 
 function SubmitButton() {
@@ -17,9 +18,10 @@ function SubmitButton() {
   );
 }
 
-export function UpdateMileageForm({ defaultMileage }: UpdateMileageFormProps) {
+export function UpdateMileageForm({ defaultMileage, vehicleId }: UpdateMileageFormProps) {
   return (
     <form action={submitMileageUpdateAction} className="grid gap-6">
+      <input type="hidden" name="vehicle_id" value={vehicleId} />
       <div className={formFieldClass}>
         <label htmlFor="current_mileage" className="text-sm font-medium text-slate-600">
           Current mileage *

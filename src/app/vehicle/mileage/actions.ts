@@ -3,15 +3,33 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { requireDeviceId } from '../../../lib/device';
-import { getVehicleByDevice, updateVehicleMileage } from '../../../lib/repository';
+import { listVehicles, updateVehicleMileage } from '../../../lib/repository';
+import { getActiveVehicleIdFromCookies, pickActiveVehicleId } from '../../../lib/vehicle-selection';
 
 export async function submitMileageUpdateAction(formData: FormData) {
   const deviceId = await requireDeviceId('/vehicle/mileage');
-  const vehicle = await getVehicleByDevice(deviceId);
+  const onboardingRedirect = '/onboarding?mode=add&redirect=%2Fvehicle%2Fmileage';
+  const vehicles = await listVehicles(deviceId);
 
-  if (!vehicle) {
-    redirect('/onboarding');
+  if (vehicles.length === 0) {
+    redirect(onboardingRedirect);
   }
+
+  const cookieVehicleId = await getActiveVehicleIdFromCookies();
+  const formVehicleValue = formData.get('vehicle_id');
+  const formVehicleId =
+    typeof formVehicleValue === 'string' && formVehicleValue.trim().length > 0
+      ? formVehicleValue.trim()
+      : null;
+
+  const targetVehicleId = pickActiveVehicleId(formVehicleId ?? cookieVehicleId, vehicles);
+
+  if (!targetVehicleId) {
+    redirect(onboardingRedirect);
+  }
+
+  const vehicle =
+    vehicles.find((item) => item.id === targetVehicleId) ?? vehicles[0];
 
   const mileageValue = formData.get('current_mileage');
   const mileageRaw = typeof mileageValue === 'string' ? mileageValue.trim() : '';
@@ -29,6 +47,8 @@ export async function submitMileageUpdateAction(formData: FormData) {
   await updateVehicleMileage(vehicle.id, parsedMileage);
 
   revalidatePath('/');
+  revalidatePath('/timeline');
+  revalidatePath('/service/new');
   revalidatePath('/vehicle/mileage');
   redirect('/');
 }

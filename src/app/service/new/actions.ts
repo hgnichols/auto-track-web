@@ -3,15 +3,33 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { requireDeviceId } from '../../../lib/device';
-import { createCustomServiceLog, createServiceLog, getVehicleByDevice } from '../../../lib/repository';
+import { createCustomServiceLog, createServiceLog, listVehicles } from '../../../lib/repository';
+import { getActiveVehicleIdFromCookies, pickActiveVehicleId } from '../../../lib/vehicle-selection';
 
 export async function submitServiceAction(formData: FormData) {
   const deviceId = await requireDeviceId('/service/new');
-  const vehicle = await getVehicleByDevice(deviceId);
+  const onboardingRedirect = '/onboarding?mode=add&redirect=%2Fservice%2Fnew';
+  const vehicles = await listVehicles(deviceId);
 
-  if (!vehicle) {
-    redirect('/onboarding');
+  if (vehicles.length === 0) {
+    redirect(onboardingRedirect);
   }
+
+  const cookieVehicleId = await getActiveVehicleIdFromCookies();
+  const formVehicleValue = formData.get('vehicle_id');
+  const formVehicleId =
+    typeof formVehicleValue === 'string' && formVehicleValue.trim().length > 0
+      ? formVehicleValue.trim()
+      : null;
+
+  const targetVehicleId = pickActiveVehicleId(formVehicleId ?? cookieVehicleId, vehicles);
+
+  if (!targetVehicleId) {
+    redirect(onboardingRedirect);
+  }
+
+  const vehicle =
+    vehicles.find((item) => item.id === targetVehicleId) ?? vehicles[0];
 
   const serviceSelection = String(formData.get('schedule_id') ?? '').trim();
   const serviceDate = String(formData.get('service_date') ?? '').trim();
@@ -70,5 +88,7 @@ export async function submitServiceAction(formData: FormData) {
 
   revalidatePath('/');
   revalidatePath('/timeline');
+  revalidatePath('/service/new');
+  revalidatePath('/vehicle/mileage');
   redirect('/');
 }

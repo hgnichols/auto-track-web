@@ -5,6 +5,7 @@ import { getDashboardData } from '../../../lib/repository';
 import { submitServiceAction } from './actions';
 import { getUpcomingServices, nextReminderLabel, reminderPreviewDate } from '../../../lib/dashboard-helpers';
 import ServiceTypeField from '../../../components/service-type-field';
+import VehicleSwitcher from '../../../components/vehicle-switcher';
 import {
   cardClass,
   formFieldClass,
@@ -14,29 +15,38 @@ import {
   primaryButtonClass,
   statusPillClass
 } from '../../../lib/ui';
+import { getActiveVehicleIdFromCookies } from '../../../lib/vehicle-selection';
 
 export default async function NewServicePage() {
   const deviceId = await requireDeviceId('/service/new');
-  const data = await getDashboardData(deviceId);
+  const onboardingRedirect = '/onboarding?mode=add&redirect=%2Fservice%2Fnew';
+  const activeVehicleIdFromCookie = await getActiveVehicleIdFromCookies();
+  const dashboardData = await getDashboardData(deviceId, activeVehicleIdFromCookie);
 
-  if (!data) {
-    redirect('/onboarding');
+  if (dashboardData.vehicles.length === 0 || !dashboardData.activeVehicle) {
+    redirect(onboardingRedirect);
   }
 
-  const { vehicle, schedules } = data;
-  const upcoming = getUpcomingServices(schedules, vehicle);
+  const { vehicles, activeVehicle, schedules } = dashboardData;
+  const upcoming = getUpcomingServices(schedules, activeVehicle);
+  const vehicleLabel = `${activeVehicle.year ?? ''} ${activeVehicle.make} ${activeVehicle.model}`.trim();
 
   return (
     <div className="mx-auto grid w-full max-w-3xl gap-6 px-4 py-12 sm:py-16">
-      <header className="grid gap-2">
+      <header className="grid gap-4">
         <h1 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">Log service</h1>
         <p className={`${mutedTextClass} text-base`}>
           Keep your history up to date. We will update reminders automatically.
+        </p>
+        <VehicleSwitcher vehicles={vehicles} activeVehicleId={activeVehicle.id} returnPath="/service/new" />
+        <p className={mutedTextClass}>
+          Logging maintenance for <span className="font-medium text-slate-800 dark:text-slate-100">{vehicleLabel}</span>.
         </p>
       </header>
 
       <section className={`${cardClass} grid gap-6`}>
         <form action={submitServiceAction} className="grid gap-6">
+          <input type="hidden" name="vehicle_id" value={activeVehicle.id} />
           <ServiceTypeField schedules={schedules} />
 
           <div className={formFieldClass}>
@@ -57,8 +67,8 @@ export default async function NewServicePage() {
               min="0"
               step="1"
               placeholder={
-                vehicle.current_mileage !== null
-                  ? `~${vehicle.current_mileage.toLocaleString()}`
+                activeVehicle.current_mileage !== null
+                  ? `~${activeVehicle.current_mileage.toLocaleString()}`
                   : 'Optional'
               }
               className={inputClass}

@@ -8,6 +8,7 @@ import { formFieldClass, inputClass, primaryButtonCompactClass } from '../../lib
 
 type VehicleFormProps = {
   years: number[];
+  returnPath: string;
 };
 
 function SubmitButton({ disabled }: { disabled: boolean }) {
@@ -19,7 +20,7 @@ function SubmitButton({ disabled }: { disabled: boolean }) {
   );
 }
 
-export function VehicleForm({ years }: VehicleFormProps) {
+export function VehicleForm({ years, returnPath }: VehicleFormProps) {
   const sortedYears = useMemo(
     () => [...years].sort((a, b) => b - a),
     [years]
@@ -154,6 +155,7 @@ export function VehicleForm({ years }: VehicleFormProps) {
 
   return (
     <form action={submitVehicleAction} className="grid gap-6">
+      <input type="hidden" name="return_to" value={returnPath} />
       <div className="grid gap-4 sm:grid-cols-2">
         <div className={formFieldClass}>
           <label htmlFor="year" className="text-sm font-medium text-slate-600 dark:text-slate-300">

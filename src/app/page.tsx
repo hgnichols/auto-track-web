@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import VehicleSwitcher from '../components/vehicle-switcher';
 import { requireDeviceId } from '../lib/device';
 import { getDashboardData } from '../lib/repository';
 import { getLastService, getUpcomingServices, nextReminderLabel, pickNextDueService } from '../lib/dashboard-helpers';
@@ -13,17 +14,19 @@ import {
   statusPillClass,
   emptyStateClass
 } from '../lib/ui';
+import { getActiveVehicleIdFromCookies } from '../lib/vehicle-selection';
 
 export default async function DashboardPage() {
   const deviceId = await requireDeviceId('/');
-  const data = await getDashboardData(deviceId);
+  const activeVehicleIdFromCookie = await getActiveVehicleIdFromCookies();
+  const dashboardData = await getDashboardData(deviceId, activeVehicleIdFromCookie);
 
-  if (!data) {
+  if (dashboardData.vehicles.length === 0 || !dashboardData.activeVehicle) {
     redirect('/onboarding');
   }
 
-  const { vehicle, schedules, logs } = data;
-  const upcomingServices = getUpcomingServices(schedules, vehicle);
+  const { vehicles, activeVehicle, schedules, logs } = dashboardData;
+  const upcomingServices = getUpcomingServices(schedules, activeVehicle);
   const nextService = pickNextDueService(upcomingServices);
   const lastService = getLastService(logs);
 
@@ -45,8 +48,8 @@ export default async function DashboardPage() {
   const reminderSummary = reminderSummaryParts.join(' • ');
 
   const mileageLabel =
-    vehicle.current_mileage !== null
-      ? `${vehicle.current_mileage.toLocaleString()} miles on the odometer`
+    activeVehicle.current_mileage !== null
+      ? `${activeVehicle.current_mileage.toLocaleString()} miles on the odometer`
       : 'Mileage not set yet';
 
   const nextServiceDetailParts: string[] = [];
@@ -89,6 +92,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="grid gap-10">
+      <VehicleSwitcher vehicles={vehicles} activeVehicleId={activeVehicle.id} returnPath="/" />
       {reminderCandidates.length > 0 && (
         <section className="grid gap-4 rounded-3xl border border-amber-200/70 bg-gradient-to-br from-amber-50/90 via-white/90 to-amber-100/70 p-7 text-slate-700 shadow-[0_30px_70px_-50px_rgba(217,119,6,0.65)] ring-1 ring-white/30 dark:border-amber-400/40 dark:from-amber-500/15 dark:via-slate-950/60 dark:to-amber-500/10 dark:text-amber-100 dark:shadow-[0_30px_70px_-50px_rgba(2,6,23,0.82)] dark:ring-slate-700/60">
           <div className="space-y-2">
@@ -114,8 +118,8 @@ export default async function DashboardPage() {
           <div className="space-y-3">
             <div className={pillVariants.accent}>Your vehicle</div>
             <h1 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 md:text-4xl">
-              {vehicle.year ? `${vehicle.year} ` : ''}
-              {vehicle.make} {vehicle.model}
+              {activeVehicle.year ? `${activeVehicle.year} ` : ''}
+              {activeVehicle.make} {activeVehicle.model}
             </h1>
             <p className="text-base text-slate-600 dark:text-slate-300">{mileageLabel}</p>
           </div>

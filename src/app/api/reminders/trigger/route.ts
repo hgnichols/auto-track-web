@@ -146,7 +146,7 @@ export async function POST(request: NextRequest) {
       continue;
     }
 
-    const schedules = await getSchedules(vehicle.device_id);
+    const schedules = await getSchedules(vehicle.device_id, vehicle.id);
     const upcoming = getUpcomingServices(schedules, vehicle);
 
     for (const upcomingService of upcoming) {

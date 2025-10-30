@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import VehicleSwitcher from '../../components/vehicle-switcher';
 import { requireDeviceId } from '../../lib/device';
 import { getDashboardData } from '../../lib/repository';
 import { buildTimeline } from '../../lib/dashboard-helpers';
@@ -9,24 +10,32 @@ import {
   statusPillClass,
   timelineItemClass
 } from '../../lib/ui';
+import { getActiveVehicleIdFromCookies } from '../../lib/vehicle-selection';
 
 export default async function TimelinePage() {
   const deviceId = await requireDeviceId('/timeline');
-  const data = await getDashboardData(deviceId);
+  const onboardingRedirect = '/onboarding?mode=add&redirect=%2Ftimeline';
+  const activeVehicleIdFromCookie = await getActiveVehicleIdFromCookies();
+  const dashboardData = await getDashboardData(deviceId, activeVehicleIdFromCookie);
 
-  if (!data) {
-    redirect('/onboarding');
+  if (dashboardData.vehicles.length === 0 || !dashboardData.activeVehicle) {
+    redirect(onboardingRedirect);
   }
 
-  const { vehicle, schedules, logs } = data;
-  const entries = buildTimeline(schedules, logs, vehicle);
+  const { vehicles, activeVehicle, schedules, logs } = dashboardData;
+  const entries = buildTimeline(schedules, logs, activeVehicle);
+  const vehicleLabel = `${activeVehicle.year ?? ''} ${activeVehicle.make} ${activeVehicle.model}`.trim();
 
   return (
     <div className="grid gap-6">
-      <header className="grid gap-2">
+      <header className="grid gap-3">
         <h1 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">Maintenance timeline</h1>
         <p className={`${mutedTextClass} text-base`}>
           Track what was done and see what&apos;s coming up next.
+        </p>
+        <VehicleSwitcher vehicles={vehicles} activeVehicleId={activeVehicle.id} returnPath="/timeline" />
+        <p className={mutedTextClass}>
+          Showing records for <span className="font-medium text-slate-800 dark:text-slate-100">{vehicleLabel}</span>.
         </p>
       </header>
 

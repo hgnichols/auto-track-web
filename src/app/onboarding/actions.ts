@@ -1,13 +1,21 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { requireDeviceId } from '../../lib/device';
 import { createVehicle, ensureDevice, getVehicleCatalogEntry } from '../../lib/repository';
+import {
+  ACTIVE_VEHICLE_COOKIE_MAX_AGE,
+  ACTIVE_VEHICLE_COOKIE_NAME
+} from '../../lib/vehicle-selection';
 
 export async function submitVehicleAction(formData: FormData) {
   const deviceId = await requireDeviceId('/onboarding');
   await ensureDevice(deviceId);
+  const returnToValue = formData.get('return_to');
+  const returnPath =
+    typeof returnToValue === 'string' && returnToValue.startsWith('/') ? returnToValue : '/';
 
   const yearValue = formData.get('year');
   const makeValue = formData.get('make');
@@ -54,7 +62,7 @@ export async function submitVehicleAction(formData: FormData) {
     throw new Error('Please enter a valid email address for reminders.');
   }
 
-  await createVehicle(deviceId, {
+  const vehicle = await createVehicle(deviceId, {
     year: Number.isFinite(year) ? year : null,
     make,
     model,
@@ -63,7 +71,23 @@ export async function submitVehicleAction(formData: FormData) {
     current_mileage: Number.isFinite(currentMileage) ? currentMileage : null
   });
 
+  const store = await cookies();
+  store.set({
+    name: ACTIVE_VEHICLE_COOKIE_NAME,
+    value: vehicle.id,
+    path: '/',
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: ACTIVE_VEHICLE_COOKIE_MAX_AGE
+  });
+
   revalidatePath('/');
   revalidatePath('/timeline');
-  redirect('/');
+  revalidatePath('/service/new');
+  revalidatePath('/vehicle/mileage');
+  if (returnPath !== '/' && returnPath !== '/timeline' && returnPath !== '/service/new' && returnPath !== '/vehicle/mileage') {
+    revalidatePath(returnPath);
+  }
+  redirect(returnPath);
 }
