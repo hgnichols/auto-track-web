@@ -4,13 +4,11 @@ import { createAdminClient } from './supabase/admin';
 import type {
   DashboardData,
   MaintenanceStatus,
-  MaintenanceCatalogEntry,
   ServiceLog,
   ServiceSchedule,
   Vehicle,
   VehicleCatalogEntry
 } from './types';
-import { getMaintenanceCatalogEntries } from './maintenance-catalog';
 import {
   getVehicleCatalogEntry as getCatalogEntry,
   getVehicleCatalogMakes as getCatalogMakes,
@@ -131,102 +129,7 @@ type ScheduleTemplate = ServiceTemplate & {
   firstDueMileage?: number | null;
 };
 
-function computeReminderLeadMiles(intervalMiles: number | null): number | null {
-  if (!intervalMiles || intervalMiles <= 0) {
-    return null;
-  }
-  const lead = Math.round(intervalMiles * 0.1);
-  return Math.min(1000, Math.max(250, lead));
-}
 
-function computeReminderLeadDays(intervalMonths: number | null): number | null {
-  if (!intervalMonths || intervalMonths <= 0) {
-    return null;
-  }
-  const approximateDays = Math.round(intervalMonths * 30 * 0.2);
-  return Math.min(45, Math.max(7, approximateDays || 7));
-}
-
-function mapMaintenanceEntryToTemplate(entry: MaintenanceCatalogEntry): ScheduleTemplate | null {
-  const intervalMiles =
-    entry.interval_miles && entry.interval_miles > 0 ? entry.interval_miles : null;
-  const intervalMonths =
-    entry.interval_months && entry.interval_months > 0 ? entry.interval_months : null;
-
-  if (!intervalMiles && !intervalMonths) {
-    return null;
-  }
-
-  return {
-    code: entry.service_code,
-    name: entry.service_name,
-    intervalMiles,
-    intervalMonths,
-    reminderLeadMiles: computeReminderLeadMiles(intervalMiles),
-    reminderLeadDays: computeReminderLeadDays(intervalMonths),
-    firstDueMileage:
-      entry.first_due_mileage && entry.first_due_mileage > 0 ? entry.first_due_mileage : null
-  };
-}
-
-async function resolveScheduleTemplates(
-  year: number | null | undefined,
-  make: string,
-  model: string
-): Promise<ScheduleTemplate[]> {
-  if (!year || !Number.isFinite(year)) {
-    return [];
-  }
-
-  const catalogEntry = await getCatalogEntry(year, make, model);
-
-  if (!catalogEntry) {
-    return [];
-  }
-
-  const maintenanceEntries = await getMaintenanceCatalogEntries(
-    catalogEntry.year,
-    catalogEntry.make,
-    catalogEntry.model
-  );
-
-  if (!maintenanceEntries.length) {
-    return [];
-  }
-
-  const templates = new Map<string, ScheduleTemplate>();
-
-  for (const entry of maintenanceEntries) {
-    const template = mapMaintenanceEntryToTemplate(entry);
-    if (!template) {
-      continue;
-    }
-
-    const existing = templates.get(template.code);
-    if (!existing) {
-      templates.set(template.code, template);
-      continue;
-    }
-
-    const currentFirstDue = existing.firstDueMileage ?? Number.POSITIVE_INFINITY;
-    const candidateFirstDue = template.firstDueMileage ?? Number.POSITIVE_INFINITY;
-
-    if (candidateFirstDue < currentFirstDue) {
-      templates.set(template.code, template);
-    }
-  }
-
-  return Array.from(templates.values()).sort((a, b) => {
-    const aDue = a.firstDueMileage ?? Number.POSITIVE_INFINITY;
-    const bDue = b.firstDueMileage ?? Number.POSITIVE_INFINITY;
-
-    if (aDue !== bDue) {
-      return aDue - bDue;
-    }
-
-    return a.name.localeCompare(b.name);
-  });
-}
 
 export async function getVehicleCatalogYears(): Promise<number[]> {
   return getCatalogYears();
@@ -395,16 +298,10 @@ async function createSchedulesForVehicle(
 }
 
 async function resolveTemplatesOrDefault(
-  year: number | null | undefined,
-  make: string,
-  model: string
+  _year: number | null | undefined,
+  _make: string,
+  _model: string
 ): Promise<ScheduleTemplate[]> {
-  const manufacturerTemplates = await resolveScheduleTemplates(year, make, model);
-
-  if (manufacturerTemplates.length > 0) {
-    return manufacturerTemplates;
-  }
-
   return DEFAULT_SERVICE_TEMPLATES.map((template) => ({
     ...template,
     firstDueMileage:

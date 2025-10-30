@@ -8,7 +8,7 @@ AutoTrack helps everyday drivers stay ahead of maintenance with a single, focuse
 - **Dashboard:** Shows the next service due, highlights reminders, and surfaces the most recent maintenance log.
 - **Vehicle Profile:** Capture year, make, model, VIN (optional), and mileage for one vehicle.
 - **Maintenance Timeline:** Combined view of upcoming (due-soon / overdue) services and completed work.
-- **Manufacturer Schedules:** Pull OEM-recommended maintenance intervals per year/make/model when available, falling back to sensible defaults.
+- **Maintenance Schedules:** Preloaded templates with sensible default intervals for common services.
 - **Service Logging:** Log routine maintenance with mileage, cost, and notes; schedules update automatically.
 - **Odometer Updates:** Adjust your current mileage whenever you like; reminders prompt you if the reading gets stale.
 - **Smart Reminders:** Default intervals for oil change, tire rotation, and brake inspection drive the dashboard alerts.
@@ -29,7 +29,6 @@ The experience is designed for mobile screens, uses a single-device anonymous se
    - Run the SQL in `supabase/schema.sql` inside the Supabase SQL editor.
    - Generate the vehicle catalog data with `npm run generate:vehicle-catalog` (pass `--start-year` / `--end-year` flags if you want to limit the range).
    - Seed the catalog locally with `npm run seed:vehicle-catalog` (requires `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in your environment). This script streams the JSON into Supabase so you don't have to paste the large SQL file.
-   - (Optional but recommended) Generate OEM maintenance schedules with `npm run generate:maintenance-catalog` after configuring the CarMD credentials described below. Seed them with `npm run seed:maintenance-catalog` to let onboarding pull real manufacturer guidance.
    - (Optional) Enable Row Level Security if you plan to move away from the service role in server actions.
 
 3. **Environment variables**
@@ -46,12 +45,8 @@ The experience is designed for mobile screens, uses a single-device anonymous se
    # Optional: MILEAGE_REMINDER_DAYS=30
    # Optional: REMINDER_TRIGGER_URL=https://your-domain.com/api/reminders/trigger
    # Optional: REMINDER_CRON_TIMEOUT_MS=35000
-   CARMD_API_KEY=your-carmd-api-key
-   CARMD_API_SECRET=your-carmd-api-secret
-   CARMD_PARTNER_TOKEN=your-carmd-partner-token
    ```
    The app currently uses the service role inside server actions and never exposes it to the client. The public anon key is included for future client-side extensions. `RESEND_API_KEY` and the reminder settings power outbound maintenance reminder emails.
-   CarMD credentials unlock the OEM maintenance ingestion script (`generate:maintenance-catalog`). Reach out to CarMD for API access and copy the Partner Token alongside your key + secret.
 
 4. **Run the dev server**
    ```bash
@@ -129,9 +124,7 @@ The experience is designed for mobile screens, uses a single-device anonymous se
 | `npm run start` | Start the production server. |
 | `npm run lint` | Run ESLint. |
 | `npm run generate:vehicle-catalog` | Fetch the NHTSA VPIC catalog and emit Supabase seed files. |
-| `npm run generate:maintenance-catalog` | Fetch OEM schedules via CarMD and emit Supabase seed files. |
 | `npm run seed:vehicle-catalog` | Push the generated catalog JSON into Supabase via the service role. |
-| `npm run seed:maintenance-catalog` | Push the generated maintenance catalog JSON into Supabase via the service role. |
 | `npm run typecheck` | Static type checking with TypeScript. |
 
 ---
