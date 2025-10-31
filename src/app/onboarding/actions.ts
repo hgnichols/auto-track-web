@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { requireDeviceId } from '../../lib/device';
+import { requireUser } from '../../lib/device';
 import { createVehicle, ensureDevice, getVehicleCatalogEntry } from '../../lib/repository';
 import {
   ACTIVE_VEHICLE_COOKIE_MAX_AGE,
@@ -11,7 +11,8 @@ import {
 } from '../../lib/vehicle-selection';
 
 export async function submitVehicleAction(formData: FormData) {
-  const deviceId = await requireDeviceId('/onboarding');
+  const user = await requireUser('/onboarding');
+  const deviceId = user.id;
   await ensureDevice(deviceId);
   const returnToValue = formData.get('return_to');
   const returnPath =
@@ -43,7 +44,6 @@ export async function submitVehicleAction(formData: FormData) {
   const model = catalogEntry.model_display;
   const vinValue = formData.get('vin');
   const mileageValue = formData.get('current_mileage');
-  const emailValue = formData.get('contact_email');
 
   const currentMileage =
     typeof mileageValue === 'string' && mileageValue.trim().length > 0
@@ -51,15 +51,14 @@ export async function submitVehicleAction(formData: FormData) {
       : null;
 
   const contactEmailRaw =
-    typeof emailValue === 'string' && emailValue.trim().length > 0
-      ? emailValue.trim().toLowerCase()
+    typeof user.email === 'string' && user.email.trim().length > 0
+      ? user.email.trim().toLowerCase()
       : null;
 
-  if (
-    contactEmailRaw &&
-    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmailRaw)
-  ) {
-    throw new Error('Please enter a valid email address for reminders.');
+  if (!contactEmailRaw) {
+    throw new Error(
+      'Your account does not have an email address. Update your Supabase profile email and try again.'
+    );
   }
 
   const vehicle = await createVehicle(deviceId, {

@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { requireDeviceId } from '../../lib/device';
+import { requireUser } from '../../lib/device';
 import { getDashboardData, getVehicleCatalogYears } from '../../lib/repository';
 import { cardClass, mutedTextClass } from '../../lib/ui';
 import { VehicleForm } from './vehicle-form';
@@ -11,7 +11,9 @@ type OnboardingPageProps = {
 };
 
 export default async function OnboardingPage({ searchParams }: OnboardingPageProps) {
-  const deviceId = await requireDeviceId('/onboarding');
+  const user = await requireUser('/onboarding');
+  const deviceId = user.id;
+  const reminderEmail = user.email ?? null;
   const params = ((await searchParams) ?? {}) as OnboardingSearchParams;
   const modeParam = params.mode;
   const mode = Array.isArray(modeParam) ? modeParam[0] ?? null : modeParam ?? null;
@@ -66,7 +68,7 @@ export default async function OnboardingPage({ searchParams }: OnboardingPagePro
 
       <section className={panelCardClass}>
         {hasCatalog ? (
-          <VehicleForm years={years} returnPath={safeReturnPath} />
+          <VehicleForm years={years} returnPath={safeReturnPath} reminderEmail={reminderEmail} />
         ) : (
           <div className="space-y-4 text-center">
             <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">

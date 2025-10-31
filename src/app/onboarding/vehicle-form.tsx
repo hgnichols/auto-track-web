@@ -4,11 +4,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { submitVehicleAction } from './actions';
 import { TypeaheadSelect, type Option } from '../../components/typeahead-select';
-import { formFieldClass, inputClass, primaryButtonCompactClass } from '../../lib/ui';
+import { formFieldClass, inputClass, primaryButtonCompactClass, mutedTextClass } from '../../lib/ui';
 
 type VehicleFormProps = {
   years: number[];
   returnPath: string;
+  reminderEmail: string | null;
 };
 
 function SubmitButton({ disabled }: { disabled: boolean }) {
@@ -20,7 +21,7 @@ function SubmitButton({ disabled }: { disabled: boolean }) {
   );
 }
 
-export function VehicleForm({ years, returnPath }: VehicleFormProps) {
+export function VehicleForm({ years, returnPath, reminderEmail }: VehicleFormProps) {
   const sortedYears = useMemo(
     () => [...years].sort((a, b) => b - a),
     [years]
@@ -150,8 +151,16 @@ export function VehicleForm({ years, returnPath }: VehicleFormProps) {
     };
   }, [selectedYear, selectedMake]);
 
+  const reminderEmailDisplay = reminderEmail ?? 'Email unavailable';
+  const isMissingReminderEmail = !reminderEmail;
+
   const disableSubmit =
-    !selectedYear || !selectedMake || !selectedModel || isLoadingMakes || isLoadingModels;
+    !selectedYear ||
+    !selectedMake ||
+    !selectedModel ||
+    isLoadingMakes ||
+    isLoadingModels ||
+    isMissingReminderEmail;
 
   return (
     <form action={submitVehicleAction} className="grid gap-6">
@@ -235,17 +244,27 @@ export function VehicleForm({ years, returnPath }: VehicleFormProps) {
             className={inputClass}
           />
         </div>
-        <div className={formFieldClass}>
-          <label htmlFor="contact_email" className="text-sm font-medium text-slate-600 dark:text-slate-300">
+        <div className={`${formFieldClass} sm:col-span-2`}>
+          <label
+            htmlFor="reminder_email_display"
+            className="text-sm font-medium text-slate-600 dark:text-slate-300"
+          >
             Reminder email
           </label>
           <input
-            id="contact_email"
-            name="contact_email"
-            type="email"
-            placeholder="Optional - name@email.com"
-            className={inputClass}
+            id="reminder_email_display"
+            type="text"
+            value={reminderEmailDisplay}
+            readOnly
+            disabled
+            className={`${inputClass} cursor-not-allowed`}
           />
+          <p className={`${mutedTextClass} text-xs`}>
+            Maintenance reminders go to the email you use to sign in.
+            {!reminderEmail
+              ? ' Add an email to your Supabase profile to continue.'
+              : ' Update your account email in Supabase to change this.'}
+          </p>
         </div>
       </div>
 
