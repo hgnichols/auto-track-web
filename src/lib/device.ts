@@ -1,42 +1,27 @@
-import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
-export const DEVICE_COOKIE_NAME = 'autotrack_device_id';
-export const DEVICE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
+import { createServerSupabaseClient } from './supabase/clients';
 
-const UUID_REGEX =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+export async function getDeviceId(client?: SupabaseClient) {
+  const supabase = client ?? (await createServerSupabaseClient());
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
 
-export function isValidDeviceId(value: string | undefined | null) {
-  if (!value) {
-    return false;
-  }
-
-  return UUID_REGEX.test(value);
+  return user?.id ?? null;
 }
 
-export async function getDeviceId() {
-  const store = await cookies();
-  const existing = await store.get(DEVICE_COOKIE_NAME);
+export async function requireDeviceId(returnPath: string, client?: SupabaseClient) {
+  const supabase = client ?? (await createServerSupabaseClient());
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
 
-  if (!existing?.value) {
-    return null;
-  }
-
-  if (!isValidDeviceId(existing.value)) {
-    return null;
-  }
-
-  return existing.value;
-}
-
-export async function requireDeviceId(returnPath: string) {
-  const id = await getDeviceId();
-
-  if (id) {
-    return id;
+  if (user) {
+    return user.id;
   }
 
   const safePath = returnPath.startsWith('/') ? returnPath : '/';
-  redirect(`/device/init?redirect=${encodeURIComponent(safePath)}`);
+  redirect(`/login?redirect=${encodeURIComponent(safePath)}`);
 }

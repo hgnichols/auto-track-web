@@ -1,10 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import type { PropsWithChildren } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useMemo, useState, type PropsWithChildren } from 'react';
+import type { User } from '@supabase/supabase-js';
 import clsx from 'clsx';
 
+import { createBrowserSupabaseClient } from '../lib/supabase/clients';
 import ThemeToggle from './theme-toggle';
 
 const NAV_LINKS = [
@@ -13,14 +15,23 @@ const NAV_LINKS = [
   { href: '/service/new', label: 'Add Service' }
 ];
 
-export default function AppShell({ children }: PropsWithChildren) {
+type AppShellProps = PropsWithChildren<{
+  user: User | null;
+}>;
+
+export default function AppShell({ children, user }: AppShellProps) {
   const pathname = usePathname();
-  const hideNav = pathname.startsWith('/onboarding');
+  const router = useRouter();
+  const hideNav = pathname.startsWith('/onboarding') || pathname.startsWith('/login');
+  const supabase = useMemo(() => createBrowserSupabaseClient(), []);
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   const navLinkClasses =
     'inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm text-slate-500 transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/80 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-300/70 dark:text-slate-300 dark:hover:bg-slate-800/80 dark:hover:text-slate-100 dark:focus-visible:outline-blue-400/60';
   const activeNavLinkClasses =
     'bg-blue-100/90 text-blue-600 shadow-[0_10px_22px_-16px_rgba(37,99,235,0.9)] ring-1 ring-inset ring-blue-200/80 dark:bg-blue-500/20 dark:text-blue-300 dark:ring-blue-400/40';
+  const displayEmail =
+    user?.email && user.email.length > 38 ? `${user.email.slice(0, 35)}…` : user?.email ?? null;
 
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden">
@@ -65,6 +76,34 @@ export default function AppShell({ children }: PropsWithChildren) {
                 );
               })}
             </nav>
+
+            {user ? (
+              <div className="flex items-center gap-3">
+                {displayEmail && (
+                  <span className="text-sm text-slate-500 dark:text-slate-300">{displayEmail}</span>
+                )}
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setIsSigningOut(true);
+                    await supabase.auth.signOut();
+                    router.replace('/login');
+                    router.refresh();
+                  }}
+                  disabled={isSigningOut}
+                  className="inline-flex h-9 items-center justify-center rounded-full border border-slate-200 px-4 text-sm font-medium text-slate-600 transition hover:-translate-y-0.5 hover:bg-white hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-300 disabled:cursor-not-allowed disabled:border-slate-300 disabled:text-slate-400 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-slate-100 dark:focus-visible:outline-blue-400 dark:disabled:border-slate-600 dark:disabled:text-slate-500"
+                >
+                  {isSigningOut ? 'Signing out…' : 'Sign out'}
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="inline-flex h-9 items-center justify-center rounded-full border border-blue-300 px-4 text-sm font-medium text-blue-600 transition hover:-translate-y-0.5 hover:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-300 dark:border-blue-400 dark:text-blue-300 dark:hover:bg-blue-500/20 dark:focus-visible:outline-blue-400"
+              >
+                Sign in
+              </Link>
+            )}
 
             <ThemeToggle />
           </div>

@@ -1,0 +1,136 @@
+'use client';
+
+import { useMemo, useState, type FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
+import { createBrowserSupabaseClient } from '../../lib/supabase/clients';
+
+type SignUpFormProps = {
+  redirectTo: string;
+};
+
+export function SignUpForm({ redirectTo }: SignUpFormProps) {
+  const router = useRouter();
+  const supabase = useMemo(() => createBrowserSupabaseClient(), []);
+  const [helperMessage, setHelperMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const email = String(formData.get('email') ?? '').trim().toLowerCase();
+    const password = String(formData.get('password') ?? '').trim();
+    const confirmPassword = String(formData.get('confirm_password') ?? '').trim();
+
+    if (!email || !password || !confirmPassword) {
+      setErrorMessage('Please complete every field to create an account.');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setErrorMessage('Passwords do not match.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    setHelperMessage(null);
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password
+    });
+
+    if (error) {
+      setIsSubmitting(false);
+      setErrorMessage(error.message);
+      return;
+    }
+
+    if (data.session) {
+      // Email confirmations are disabled – the user can continue immediately.
+      router.replace(redirectTo);
+      router.refresh();
+      return;
+    }
+
+    setIsSubmitting(false);
+    setHelperMessage(
+      'Check your email to confirm the address. Once verified, sign in to start onboarding.'
+    );
+  }
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="grid gap-4 rounded-3xl border border-slate-200/70 bg-white/70 p-6 shadow-[0_14px_45px_-28px_rgba(15,23,42,0.45)] backdrop-blur dark:border-slate-700/60 dark:bg-slate-900/60 dark:shadow-[0_14px_45px_-28px_rgba(2,6,23,0.8)]"
+    >
+      <div className="grid gap-2">
+        <h2 className="text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-100">
+          New to AutoTrack?
+        </h2>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          Create an account and we’ll guide you through setting up your first vehicle.
+        </p>
+      </div>
+
+      <label className="grid gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+        Email
+        <input
+          required
+          name="email"
+          type="email"
+          autoComplete="email"
+          className="h-11 rounded-full border border-slate-200 bg-white px-4 text-sm text-slate-900 shadow-sm transition focus-visible:border-blue-400 focus-visible:outline-none focus-visible:ring focus-visible:ring-blue-200/70 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus-visible:border-blue-400 dark:focus-visible:ring-blue-500/40"
+          placeholder="you@example.com"
+        />
+      </label>
+
+      <label className="grid gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+        Password
+        <input
+          required
+          name="password"
+          type="password"
+          autoComplete="new-password"
+          minLength={6}
+          className="h-11 rounded-full border border-slate-200 bg-white px-4 text-sm text-slate-900 shadow-sm transition focus-visible:border-blue-400 focus-visible:outline-none focus-visible:ring focus-visible:ring-blue-200/70 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus-visible:border-blue-400 dark:focus-visible:ring-blue-500/40"
+          placeholder="Create a password"
+        />
+      </label>
+
+      <label className="grid gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+        Confirm password
+        <input
+          required
+          name="confirm_password"
+          type="password"
+          autoComplete="new-password"
+          minLength={6}
+          className="h-11 rounded-full border border-slate-200 bg-white px-4 text-sm text-slate-900 shadow-sm transition focus-visible:border-blue-400 focus-visible:outline-none focus-visible:ring focus-visible:ring-blue-200/70 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus-visible:border-blue-400 dark:focus-visible:ring-blue-500/40"
+          placeholder="Re-enter password"
+        />
+      </label>
+
+      {errorMessage && (
+        <p className="rounded-2xl border border-rose-200/80 bg-rose-50/80 px-4 py-3 text-sm text-rose-600 dark:border-rose-500/40 dark:bg-rose-500/10 dark:text-rose-200">
+          {errorMessage}
+        </p>
+      )}
+
+      {helperMessage && (
+        <p className="rounded-2xl border border-emerald-200/80 bg-emerald-50/90 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-200">
+          {helperMessage}
+        </p>
+      )}
+
+      <button
+        type="submit"
+        className="inline-flex h-11 items-center justify-center rounded-full border border-blue-500/70 bg-transparent px-6 text-sm font-semibold text-blue-600 transition hover:-translate-y-0.5 hover:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300 disabled:cursor-not-allowed disabled:border-blue-300 disabled:text-blue-300 dark:border-blue-400/60 dark:text-blue-300 dark:hover:bg-blue-500/10 dark:focus-visible:outline-blue-400"
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? 'Creating account…' : 'Create account'}
+      </button>
+    </form>
+  );
+}

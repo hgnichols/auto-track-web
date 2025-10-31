@@ -35,6 +35,7 @@ The experience is designed for mobile screens, uses a single-device anonymous se
    Create `.env.local` at the project root with:
    ```bash
    SUPABASE_URL=your-project-url
+   NEXT_PUBLIC_SUPABASE_URL=your-project-url
    SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
    RESEND_API_KEY=your-resend-api-key
