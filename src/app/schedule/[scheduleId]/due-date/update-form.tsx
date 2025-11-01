@@ -2,11 +2,7 @@
 
 import { useFormStatus } from 'react-dom';
 import { submitScheduleDueDateAction } from './actions';
-import {
-  formFieldClass,
-  inputClass,
-  primaryButtonCompactClass
-} from '../../../../lib/ui';
+import { formFieldClass, inputClass } from '../../../../lib/ui';
 
 type UpdateDueDateFormProps = {
   scheduleId: string;
@@ -17,7 +13,11 @@ type UpdateDueDateFormProps = {
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
-    <button type="submit" className={primaryButtonCompactClass} disabled={pending}>
+    <button
+      type="submit"
+      className="inline-flex h-11 items-center justify-center rounded-full border border-blue-500/70 bg-transparent px-6 text-sm font-semibold text-blue-600 transition hover:-translate-y-0.5 hover:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300 disabled:cursor-not-allowed disabled:border-blue-300 disabled:text-blue-300 dark:border-blue-400/60 dark:text-blue-300 dark:hover:bg-blue-500/10 dark:focus-visible:outline-blue-400"
+      disabled={pending}
+    >
       {pending ? 'Saving target date...' : 'Save target date'}
     </button>
   );

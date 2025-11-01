@@ -86,9 +86,20 @@ export default function AppShell({ children, user }: AppShellProps) {
                   type="button"
                   onClick={async () => {
                     setIsSigningOut(true);
-                    await supabase.auth.signOut();
-                    router.replace('/login');
-                    router.refresh();
+                    try {
+                      const { error } = await supabase.auth.signOut();
+                      if (error) {
+                        console.error('Failed to sign out', error);
+                        return;
+                      }
+
+                      router.replace('/login');
+                      router.refresh();
+                    } catch (error) {
+                      console.error('Unexpected error during sign out', error);
+                    } finally {
+                      setIsSigningOut(false);
+                    }
                   }}
                   disabled={isSigningOut}
                   className="inline-flex h-9 items-center justify-center rounded-full border border-slate-200 px-4 text-sm font-medium text-slate-600 transition hover:-translate-y-0.5 hover:bg-white hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-300 disabled:cursor-not-allowed disabled:border-slate-300 disabled:text-slate-400 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-slate-100 dark:focus-visible:outline-blue-400 dark:disabled:border-slate-600 dark:disabled:text-slate-500"

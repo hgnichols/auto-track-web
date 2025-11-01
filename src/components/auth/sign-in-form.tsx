@@ -89,7 +89,7 @@ export function SignInForm({ redirectTo }: SignInFormProps) {
 
       <button
         type="submit"
-        className="inline-flex h-11 items-center justify-center rounded-full bg-blue-600 px-6 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300 disabled:cursor-not-allowed disabled:bg-blue-400 dark:bg-blue-500 dark:hover:bg-blue-400 dark:focus-visible:outline-blue-400"
+        className="inline-flex h-11 items-center justify-center rounded-full border border-blue-500/70 bg-transparent px-6 text-sm font-semibold text-blue-600 transition hover:-translate-y-0.5 hover:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300 disabled:cursor-not-allowed disabled:border-blue-300 disabled:text-blue-300 dark:border-blue-400/60 dark:text-blue-300 dark:hover:bg-blue-500/10 dark:focus-visible:outline-blue-400"
         disabled={isSubmitting}
       >
         {isSubmitting ? 'Signing in…' : 'Sign in'}

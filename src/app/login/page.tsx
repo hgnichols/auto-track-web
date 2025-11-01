@@ -3,12 +3,15 @@ import { SignInForm } from '../../components/auth/sign-in-form';
 import { SignUpForm } from '../../components/auth/sign-up-form';
 import { createServerSupabaseClient } from '../../lib/supabase/clients';
 
+type LoginSearchParams = Record<string, string | string[] | undefined>;
+
 type LoginPageProps = {
-  searchParams?: Record<string, string | string[] | undefined>;
+  searchParams?: LoginSearchParams | Promise<LoginSearchParams>;
 };
 
-function resolveRedirectParam(searchParams?: Record<string, string | string[] | undefined>) {
-  const candidate = searchParams?.redirect;
+async function resolveRedirectParam(searchParams?: LoginPageProps['searchParams']) {
+  const params = ((await searchParams) ?? {}) as LoginSearchParams;
+  const candidate = params.redirect;
   const value = Array.isArray(candidate) ? candidate[0] : candidate ?? '/';
 
   if (typeof value !== 'string') {
@@ -19,7 +22,7 @@ function resolveRedirectParam(searchParams?: Record<string, string | string[] | 
 }
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
-  const redirectTo = resolveRedirectParam(searchParams);
+  const redirectTo = await resolveRedirectParam(searchParams);
   const supabase = await createServerSupabaseClient();
   const {
     data: { user }
