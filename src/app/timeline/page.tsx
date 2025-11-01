@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import VehicleSwitcher from '../../components/vehicle-switcher';
 import { requireDeviceId } from '../../lib/device';
@@ -5,6 +6,7 @@ import { getDashboardData } from '../../lib/repository';
 import { buildTimeline } from '../../lib/dashboard-helpers';
 import {
   emptyStateClass,
+  ghostButtonCompactClass,
   mutedTextClass,
   pillVariants,
   statusPillClass,
@@ -97,6 +99,14 @@ export default async function TimelinePage() {
                   {entry.mileageLabel && (
                     <p className={mutedTextClass}>Target mileage: {entry.mileageLabel}</p>
                   )}
+                  <div className="mt-3 flex justify-end">
+                    <Link
+                      href={`/schedule/${entry.scheduleId}/due-date?return=%2Ftimeline`}
+                      className={ghostButtonCompactClass}
+                    >
+                      Adjust due date
+                    </Link>
+                  </div>
                 </article>
               );
             }

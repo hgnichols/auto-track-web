@@ -526,6 +526,39 @@ export async function getServiceLogs(deviceId: string, vehicleId: string) {
     });
 }
 
+export async function getSchedule(deviceId: string, scheduleId: string) {
+  const schedule =
+    localDb.schedules.find(
+      (candidate) => candidate.device_id === deviceId && candidate.id === scheduleId
+    ) ?? null;
+
+  return schedule;
+}
+
+export async function updateScheduleDueDate(
+  deviceId: string,
+  scheduleId: string,
+  dueDate: string | null
+) {
+  const schedule = localDb.schedules.find(
+    (candidate) => candidate.device_id === deviceId && candidate.id === scheduleId
+  );
+
+  if (!schedule) {
+    throw new Error('Schedule not found for the current device.');
+  }
+
+  const sanitizedDueDate =
+    typeof dueDate === 'string' && dueDate.trim().length > 0 ? dueDate : null;
+
+  schedule.next_due_date = sanitizedDueDate;
+  schedule.last_reminder_sent_at = null;
+  schedule.last_reminder_status = null;
+  schedule.updated_at = new Date().toISOString();
+
+  return schedule;
+}
+
 export async function createServiceLog(
   deviceId: string,
   vehicle: Vehicle,

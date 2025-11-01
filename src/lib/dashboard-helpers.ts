@@ -22,6 +22,7 @@ export type TimelineEntry =
   | {
       id: string;
       type: 'upcoming';
+      scheduleId: string;
       title: string;
       dateLabel: string | null;
       mileageLabel: string | null;
@@ -139,6 +140,7 @@ export function buildTimeline(schedules: ServiceSchedule[], logs: ServiceLog[], 
     return {
       id: `upcoming-${item.schedule.id}`,
       type: 'upcoming',
+      scheduleId: item.schedule.id,
       title: item.schedule.service_name,
       dateLabel: item.dueDateLabel,
       mileageLabel,

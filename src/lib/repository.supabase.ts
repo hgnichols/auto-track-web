@@ -392,6 +392,60 @@ export async function getServiceLogs(deviceId: string, vehicleId: string) {
   return (data as ServiceLog[]) ?? [];
 }
 
+export async function getSchedule(deviceId: string, scheduleId: string) {
+  const client = createAdminClient();
+  const { data, error } = await client
+    .from('service_schedules')
+    .select('*')
+    .eq('device_id', deviceId)
+    .eq('id', scheduleId)
+    .maybeSingle();
+
+  if (error && error.code !== 'PGRST116') {
+    throw error;
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  return data as ServiceSchedule;
+}
+
+export async function updateScheduleDueDate(
+  deviceId: string,
+  scheduleId: string,
+  dueDate: string | null
+) {
+  const client = createAdminClient();
+  const nowIso = new Date().toISOString();
+  const sanitizedDueDate =
+    typeof dueDate === 'string' && dueDate.trim().length > 0 ? dueDate : null;
+
+  const { data, error } = await client
+    .from('service_schedules')
+    .update({
+      next_due_date: sanitizedDueDate,
+      last_reminder_sent_at: null,
+      last_reminder_status: null,
+      updated_at: nowIso
+    })
+    .eq('device_id', deviceId)
+    .eq('id', scheduleId)
+    .select('*')
+    .maybeSingle();
+
+  if (error && error.code !== 'PGRST116') {
+    throw error;
+  }
+
+  if (!data) {
+    throw new Error('Schedule not found for the current device.');
+  }
+
+  return data as ServiceSchedule;
+}
+
 export async function createServiceLog(
   deviceId: string,
   vehicle: Vehicle,

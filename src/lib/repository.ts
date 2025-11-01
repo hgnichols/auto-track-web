@@ -22,6 +22,8 @@ export const {
   ensureSchedulesExist,
   getSchedules,
   getServiceLogs,
+  getSchedule,
+  updateScheduleDueDate,
   createServiceLog,
   createCustomServiceLog,
   updateVehicleMileage,

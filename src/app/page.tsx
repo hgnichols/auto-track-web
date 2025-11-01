@@ -7,6 +7,7 @@ import { getLastService, getUpcomingServices, nextReminderLabel, pickNextDueServ
 import {
   cardClass,
   ghostButtonClass,
+  ghostButtonCompactClass,
   primaryButtonClass,
   pillVariants,
   mutedTextClass,
@@ -182,13 +183,21 @@ export default async function DashboardPage() {
               </p>
             </div>
             {nextService && (
-              <span className={statusPillClass(nextService.status)}>
-                {nextService.status === 'overdue'
-                  ? 'Overdue'
-                  : nextService.status === 'due_soon'
-                  ? 'Due soon'
-                  : 'On track'}
-              </span>
+              <div className="flex flex-wrap items-center gap-3">
+                <span className={statusPillClass(nextService.status)}>
+                  {nextService.status === 'overdue'
+                    ? 'Overdue'
+                    : nextService.status === 'due_soon'
+                    ? 'Due soon'
+                    : 'On track'}
+                </span>
+                <Link
+                  href={`/schedule/${nextService.schedule.id}/due-date?return=${encodeURIComponent('/')}`}
+                  className={ghostButtonCompactClass}
+                >
+                  Adjust due date
+                </Link>
+              </div>
             )}
           </header>
 
