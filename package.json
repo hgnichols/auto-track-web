@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
     "generate:vehicle-catalog": "node scripts/generate-vehicle-catalog.mjs",
     "seed:vehicle-catalog": "node scripts/seed-vehicle-catalog.mjs",
     "export:vehicle-catalog-csv": "node scripts/export-vehicle-catalog-csv.mjs",
@@ -33,6 +34,7 @@
     "eslint-config-next": "16.0.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.15",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.9"
   }
 }

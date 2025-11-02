@@ -1,6 +1,7 @@
 import { addMonths, format } from 'date-fns';
 import { DEFAULT_SERVICE_TEMPLATES, type ServiceTemplate } from './constants';
 import { createAdminClient } from './supabase/admin';
+import { isEmailConfirmed } from './user';
 import type {
   DashboardData,
   MaintenanceStatus,
@@ -612,7 +613,41 @@ export async function getVehiclesWithReminderContact() {
   }
 
   const vehicles = (data as Vehicle[]) ?? [];
-  return vehicles.filter((vehicle) => !!vehicle.contact_email);
+  if (vehicles.length === 0) {
+    return [];
+  }
+
+  const confirmedDeviceIds = new Set<string>();
+
+  await Promise.all(
+    Array.from(new Set(vehicles.map((vehicle) => vehicle.device_id))).map(async (id) => {
+      try {
+        const { data: userData, error: userError } = await client.auth.admin.getUserById(id);
+        if (userError || !userData?.user) {
+          console.warn(
+            '[repository.supabase#getVehiclesWithReminderContact] Skipping device with missing user record',
+            id,
+            userError?.message ?? null
+          );
+          return;
+        }
+
+        if (isEmailConfirmed(userData.user)) {
+          confirmedDeviceIds.add(id);
+        }
+      } catch (fetchError) {
+        console.error(
+          '[repository.supabase#getVehiclesWithReminderContact] Failed to inspect user confirmation status',
+          id,
+          fetchError
+        );
+      }
+    })
+  );
+
+  return vehicles.filter(
+    (vehicle) => !!vehicle.contact_email && confirmedDeviceIds.has(vehicle.device_id)
+  );
 }
 
 export async function markScheduleReminderSent(

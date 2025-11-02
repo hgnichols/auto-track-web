@@ -1,5 +1,6 @@
 export const runtime = 'nodejs';
 
+import { timingSafeEqual } from 'crypto';
 import { differenceInCalendarDays, differenceInHours, isValid, parseISO } from 'date-fns';
 import { NextRequest, NextResponse } from 'next/server';
 import { getUpcomingServices } from '../../../../lib/dashboard-helpers';
@@ -101,7 +102,9 @@ export async function POST(request: NextRequest) {
   }
 
   const authHeader = request.headers.get('authorization') ?? '';
-  if (authHeader !== `Bearer ${secret}`) {
+  const expectedHeader = `Bearer ${secret}`;
+
+  if (!timingSafeEquals(authHeader, expectedHeader)) {
     return new NextResponse('Unauthorized', { status: 401 });
   }
 
@@ -229,4 +232,16 @@ export async function POST(request: NextRequest) {
     mileageSkipped,
     mileageErrors
   });
+}
+
+function timingSafeEquals(a: string, b: string) {
+  if (a.length !== b.length) {
+    return false;
+  }
+
+  const encoder = new TextEncoder();
+  const aBytes = encoder.encode(a);
+  const bBytes = encoder.encode(b);
+
+  return timingSafeEqual(aBytes, bBytes);
 }

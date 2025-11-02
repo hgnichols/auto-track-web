@@ -9,6 +9,7 @@ import {
   ACTIVE_VEHICLE_COOKIE_MAX_AGE,
   ACTIVE_VEHICLE_COOKIE_NAME
 } from '../../lib/vehicle-selection';
+import { isEmailConfirmed } from '../../lib/user';
 
 export async function submitVehicleAction(formData: FormData) {
   const user = await requireUser('/onboarding');
@@ -58,6 +59,12 @@ export async function submitVehicleAction(formData: FormData) {
   if (!contactEmailRaw) {
     throw new Error(
       'Your account does not have an email address. Update your Supabase profile email and try again.'
+    );
+  }
+
+  if (!isEmailConfirmed(user)) {
+    throw new Error(
+      'Please confirm your email address before adding vehicles. Check your inbox for the verification link.'
     );
   }
 

@@ -119,3 +119,32 @@ create table if not exists public.service_logs (
 
 create index if not exists service_logs_vehicle_idx on public.service_logs(vehicle_id, service_date desc);
 create index if not exists service_schedules_vehicle_idx on public.service_schedules(vehicle_id, next_due_date);
+
+alter table public.devices enable row level security;
+alter table public.vehicles enable row level security;
+alter table public.service_schedules enable row level security;
+alter table public.service_logs enable row level security;
+
+create policy "Users manage own device record"
+  on public.devices
+  for all
+  using (id = auth.uid())
+  with check (id = auth.uid());
+
+create policy "Users manage own vehicles"
+  on public.vehicles
+  for all
+  using (device_id = auth.uid())
+  with check (device_id = auth.uid());
+
+create policy "Users manage own service schedules"
+  on public.service_schedules
+  for all
+  using (device_id = auth.uid())
+  with check (device_id = auth.uid());
+
+create policy "Users manage own service logs"
+  on public.service_logs
+  for all
+  using (device_id = auth.uid())
+  with check (device_id = auth.uid());
